@@ -40,7 +40,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 
 ### Backbone models
 #### PSAC
-Train with the PSAC baseline.
+Training.
 ```
 python xxx.py --mode train
 ```
@@ -56,11 +56,11 @@ python xxx.py --mode test
 
 ### Our proposed HAVF
 #### PSAC+HAVF
-Train with the PSAC+HAVF model.
+Training.
 ```
 python xxx.py --mode train
 ```
-Testing
+Testing.
 ```
 python xxx.py --mode test
 ```
@@ -72,7 +72,7 @@ python xxx.py --mode test
 
 ## Results
 <div align="center">
-<img src=pics/results.png width=90% />
+<img src=pics/results.png width=95% />
 </div>
 
 ## Notice
