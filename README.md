@@ -32,7 +32,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 
 3. Data preprocessing
 
-    **Extract audio waveforms.**
+    **Extract audio waveforms.** Just fix the directory path of raw videos in the `./preprocess/extract_audio.sh` and run the command `sh preprocess/extract_audio.sh`.
     ```
     cd data
     mkdir audio
