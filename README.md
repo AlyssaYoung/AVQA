@@ -7,6 +7,14 @@ Dataset Website: [https://mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu
 
 ## Description
 ### Repo directories
+- ./: global config files, training, evaluating scripts;
+- ./data: data dictionary;
+- ./preprocess: code and scripts for feature extraction;
+- ./backbones: six backbone models -- PSAC, HME, LADNet, ACRTransformer, HGA, HCRN;
+- ./HAVF: our proposed HAVF model to reproduce the results;
+- ./runs: the default output dictionary used to store our trained model and result files;
+- ./scripts: all training and evaluating scripts;
+- ./requirements: requirement.txt files for each backbone models.
 
 ## Usage
 ### Before we start
