@@ -14,9 +14,11 @@ Dataset Website: [https://mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu
     git clone git@github.com:AlyssaYoung/AVQA.git
     ```
 2. Download data
-    
-    You can download the raw videos and extract features according to your needs. Besides, you can also directly use the features we provide. 
-    More detailed information for downloading data can be found in the #Downloads Section of the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
+    You can download the raw videos and extract features according to your needs. Besides, you can also directly use the features we provide. More detailed information for downloading data can be found in the #Downloads Section of the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
+
+3. Data Preprocessing
+    - Extract audio waveforms from videos.
+    - Extract frames from videos.
 
 ## Citation
 If you find our paper or code useful, please cite our paper using the following bibtex:
