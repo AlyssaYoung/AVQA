@@ -38,13 +38,9 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     - Appearance feature.
     - Motion feature.
 
-### Training and testing HAVF with different backbone models
+### Backbone models
 #### PSAC
 Train with the PSAC baseline.
-```
-python xxx.py --mode train
-```
-Train with the PSAC+HAVF model.
 ```
 python xxx.py --mode train
 ```
@@ -58,7 +54,26 @@ python xxx.py --mode test
 #### HGA
 #### HCRN
 
+### Our proposed HAVF
+#### PSAC+HAVF
+Train with the PSAC+HAVF model.
+```
+python xxx.py --mode train
+```
+Testing
+```
+python xxx.py --mode test
+```
+#### HME+HAVF
+#### LADNet+HAVF
+#### ACRTransformer+HAVF
+#### HGA+HAVF
+#### HCRN+HAVF
+
 ## Results
+<div align="center">
+<img src=pics/results.png width=90% />
+</div>
 
 ## Notice
 
