@@ -16,9 +16,34 @@ Dataset Website: [https://mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu
 2. Download data
     You can download the raw videos and extract features according to your needs. Besides, you can also directly use the features we provide. More detailed information for downloading data can be found in the #Downloads Section of the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
 
-3. Data Preprocessing
-- Extract audio waveforms from videos.
-- Extract frames from videos.
+3. Data preprocessing
+    - Extract audio waveforms.
+    - Extract visual frames.
+
+4. Feature extraction
+    - Audio feature.
+    - Appearance feature.
+    - Motion feature.
+
+### Backbone models
+#### PSAC
+    Train with the PSAC baseline.
+    ```
+    python xxx.py --mode train
+    ```
+    Train with the PSAC+HAVF model.
+    ```
+    python xxx.py --mode train
+    ```
+    Testing.
+    ```
+    python xxx.py --mode test
+    ```
+#### HME
+#### LADNet
+#### ACRTransformer
+#### HGA
+#### HCRN
 
 ## Citation
 If you find our paper or code useful, please cite our paper using the following bibtex:
