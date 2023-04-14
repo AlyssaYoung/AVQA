@@ -8,7 +8,7 @@ Dataset Website: https://mn.cs.tsinghua.edu.cn/avqa.
 ## AVQA Dataset
 AVQA is an audio-visual question answering dataset for the multimodal understanding of audio-visual objects and activities in real-life scenarios on videos. AVQA provides diverse sets of questions specially designed considering both audio and visual information, involving various relationships between objects or in activities.
 
-We collect 57,015 videos from daily audio-visual activities and 57,335 specially-designed question-answer pairs relying on clues from both audio and visual modalities. More Detailed information listed in the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
+We collect 57,015 videos from daily audio-visual activities and 57,335 specially-designed question-answer pairs relying on clues from both audio and visual modalities. More Detailed information listed on the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
 ## Description
 ### Repo directories
 - ./configs: config files;
@@ -118,4 +118,4 @@ If you find our paper or code useful, please cite our paper using the following 
 
 ## Acknowledgement
 - As for audio feature extraction, we adapt PANNs from this [repo](https://github.com/qiuqiangkong/audioset_tagging_cnn) to our code. Thank @qiuqiangkong for releasing the code and the pretrained models.
-- We refer to this [repo](https://github.com/thaolmk54/hcrn-videoqa) to preprocess visual frames and extract appearance and motion features. Thank @thaolmk54 for releaing the code.
+- We refer to this [repo](https://github.com/thaolmk54/hcrn-videoqa) to preprocess visual frames and extract appearance and motion features. Thank @thaolmk54 for this excellent work.
