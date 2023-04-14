@@ -46,11 +46,11 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     - Motion feature.
 
 Finally, the feature dimension of extracted features is as follows:
-    |     | Dimension  |
-    |  ----  | ----  |
-    | audio features  | (#num_videos, 2048) |
-    | appearance features  | (#num_videos, 8, 16, 2048) |
-    | motion features  | (#num_videos, 8, 2048) |
+|     | Dimension  |
+|  ----  | ----  |
+| Audio features  | (#num_videos, 2048) |
+| Appearance features  | (#num_videos, 8, 16, 2048) |
+| Motion features  | (#num_videos, 8, 2048) |
 
 Note: You can also develop data preprocessing and feature extraction methods in your original and innonative ways. Here we just provide a possible way to utilize the audio and visual data :)
 
