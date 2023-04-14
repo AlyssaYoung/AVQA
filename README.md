@@ -3,7 +3,7 @@ This is the official repo for our ACM Multimedia 2022 paper [AVQA: A Dataset for
 <div align="center">
 <img src=pics/model.png width=90% />
 </div>
-Dataset Website: [mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu.cn).
+Dataset Website: https://mn.cs.tsinghua.edu.cn.
 
 ## AVQA Dataset
 AVQA is an audio-visual question answering dataset for the multimodal understanding of audio-visual objects and activities in real-life scenarios on videos. AVQA provides diverse sets of questions specially designed considering both audio and visual information, involving various relationships between objects or in activities.
