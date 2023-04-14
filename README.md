@@ -31,10 +31,12 @@ Dataset Website: [https://mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu
     ```
     python xxx.py --mode train
     ```
+
     Train with the PSAC+HAVF model.
     ```
     python xxx.py --mode train
     ```
+    
     Testing.
     ```
     python xxx.py --mode test
