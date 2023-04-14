@@ -27,20 +27,20 @@ Dataset Website: [https://mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu
 
 ### Backbone models
 #### PSAC
-    Train with the PSAC baseline.
-    ```
-    python xxx.py --mode train
-    ```
+Train with the PSAC baseline.
+```
+python xxx.py --mode train
+```
 
-    Train with the PSAC+HAVF model.
-    ```
-    python xxx.py --mode train
-    ```
-    
-    Testing.
-    ```
-    python xxx.py --mode test
-    ```
+Train with the PSAC+HAVF model.
+```
+python xxx.py --mode train
+```
+
+Testing.
+```
+python xxx.py --mode test
+```
 #### HME
 #### LADNet
 #### ACRTransformer
