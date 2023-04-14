@@ -3,7 +3,7 @@ This is the official repo for our ACM Multimedia 2022 paper [AVQA: A Dataset for
 <div align="center">
 <img src=pics/model.png width=90% />
 </div>
-Dataset Website: https://mn.cs.tsinghua.edu.cn.
+Dataset Website: https://mn.cs.tsinghua.edu.cn/avqa.
 
 ## AVQA Dataset
 AVQA is an audio-visual question answering dataset for the multimodal understanding of audio-visual objects and activities in real-life scenarios on videos. AVQA provides diverse sets of questions specially designed considering both audio and visual information, involving various relationships between objects or in activities.
@@ -39,7 +39,12 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     cd ..
     sh preprocess/extract_audio.sh
     ```
-    **Extract audio features.**
+    **Extract audio features.** We have written the script for audio feature extraction, just create a new python virtual environment and run the following command:
+    ```
+    cd preprocess/preprocess_audio/
+    pip install -r requirements.txt
+    sh extract_audio_feat.sh
+    ```
     **Extract visual frames.** 
 
     - Appearance feature.
@@ -93,6 +98,10 @@ Note: You can also develop data preprocessing and feature extraction methods in 
 <img src=pics/results.png width=95% />
 </div>
 
+## Dependency
+- Anaconda3
+- Pip
+
 ## Notice
 
 ## Citation
@@ -106,3 +115,7 @@ If you find our paper or code useful, please cite our paper using the following 
   year={2022}
 }
 ```
+
+## Acknowledgement
+- As for audio feature extraction, we adapt PANNs from this [repo](https://github.com/qiuqiangkong/audioset_tagging_cnn) to our code. Thank @qiuqiangkong for releasing the code and the pretrained models.
+- We refer to this [repo](https://github.com/thaolmk54/hcrn-videoqa) to preprocess visual frames and extract appearance and motion features. Thank @thaolmk54 for releaing the code.
