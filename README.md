@@ -31,13 +31,14 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     You can download the raw videos and extract features according to your needs. Besides, you can also directly use the features we provide. More detailed information for downloading data can be found in the #Downloads Section of the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
 
 3. Data preprocessing
-*Extract audio waveforms.*
+
+**Extract audio waveforms.**
 ```
 cd data
 mkdir audio
 sh extract_audio.sh
 ```
-*Extract visual frames.*
+**Extract visual frames.**
 
 4. Feature extraction
     - Audio feature.
