@@ -38,7 +38,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     - Appearance feature.
     - Motion feature.
 
-### Backbone models
+### Training and testing HAVF with different backbone models
 #### PSAC
 Train with the PSAC baseline.
 ```
