@@ -30,21 +30,29 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 
     You can download the raw videos and extract features according to your needs. Besides, you can also directly use the features we provide. More detailed information for downloading data can be found in the #Downloads Section of the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
 
-3. Data preprocessing
+3. Data preprocessing and feature extraction
 
-    **Extract audio waveforms.** Just fix the directory path of raw videos in the `./preprocess/extract_audio.sh` and run the command `sh preprocess/extract_audio.sh`.
+    **Extract audio waveforms.** We write a shell script for you to extract audio waveforms. Just fix the directory path of raw videos in the script file `./preprocess/extract_audio.sh` and run the command:
     ```
     cd data
     mkdir audio
     cd ..
     sh preprocess/extract_audio.sh
     ```
-    **Extract visual frames.**
+    **Extract audio features.**
+    **Extract visual frames.** 
 
-4. Feature extraction
-    - Audio feature.
     - Appearance feature.
     - Motion feature.
+
+Finally, the feature dimension of extracted features is as follows:
+|     | Dimension  |
+|  ----  | ----  |
+| audio features  | (#num_videos, 2048) |
+| appearance features  | (#num_videos, 8, 16, 2048) |
+| motion features  | (#num_videos, 8, 2048) |
+
+Note: You can also develop data preprocessing and feature extraction methods in your original and innonative ways. Here we just provide a possible way to utilize the audio and visual data :)
 
 ### Backbone models
 1. PSAC
