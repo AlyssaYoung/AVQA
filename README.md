@@ -1,8 +1,8 @@
 # AVQA
 This is the official repo for our ACM Multimedia 2022 paper [AVQA: A Dataset for Audio-Visual Question Answering on Videos](https://dl.acm.org/doi/10.1145/3503161.3548291).
-
+<div align="center">
 <img src=pics/model.png width=80% />
-
+</div>
 Dataset Website: [https://mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu.cn/avqa)
 
 ## AVQA Dataset
