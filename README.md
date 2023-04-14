@@ -3,8 +3,18 @@ This is the official repo for our ACM Multimedia 2022 paper [AVQA: A Dataset for
 
 Dataset Website: [https://mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu.cn/avqa)
 
+## AVQA Dataset
+
 ## Description
 ### Repo directories
+
+## Usage
+1. Clone this repo
+`git clone git@github.com:AlyssaYoung/AVQA.git`
+2. Download data
+You can download the raw videos and extract features according to your needs. Besides, you can also directly use the features we provide.
+
+More detailed information for downloading data can be found in the #Downloads Section of the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
 
 ## Citation
 If you find our paper or code useful, please cite our paper using the following bibtex:
