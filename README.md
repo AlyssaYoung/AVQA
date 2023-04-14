@@ -13,7 +13,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 ### Repo directories
 - ./configs: config files;
 - ./data: data dictionary;
-- ./preprocess: code and scripts for feature extraction;
+- ./preprocess: code and scripts for data preprocessing and feature extraction;
 - ./backbones: six backbone models -- PSAC, HME, LADNet, ACRTransformer, HGA, HCRN;
 - ./HAVF: our proposed HAVF model to reproduce the results;
 - ./runs: the default output dictionary used to store our trained model and result files;
@@ -27,10 +27,16 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     git clone git@github.com:AlyssaYoung/AVQA.git
     ```
 2. Download data
+
     You can download the raw videos and extract features according to your needs. Besides, you can also directly use the features we provide. More detailed information for downloading data can be found in the #Downloads Section of the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
 
 3. Data preprocessing
     - Extract audio waveforms.
+    ```
+    cd data
+    mkdir audio
+    sh extract_audio.sh
+    ```
     - Extract visual frames.
 
 4. Feature extraction
@@ -40,6 +46,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 
 ### Backbone models
 1. PSAC
+
     Training.
     ```
     python xxx.py --mode train
@@ -56,6 +63,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 
 ### Our proposed HAVF
 1. PSAC+HAVF
+
     Training.
     ```
     python xxx.py --mode train
