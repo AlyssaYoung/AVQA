@@ -9,6 +9,7 @@ Dataset Website: [https://mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu
 ### Repo directories
 
 ## Usage
+### Before we start
 1. Clone this repo
     ```
     git clone git@github.com:AlyssaYoung/AVQA.git
@@ -31,12 +32,10 @@ Train with the PSAC baseline.
 ```
 python xxx.py --mode train
 ```
-
 Train with the PSAC+HAVF model.
 ```
 python xxx.py --mode train
 ```
-
 Testing.
 ```
 python xxx.py --mode test
