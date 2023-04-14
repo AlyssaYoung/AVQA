@@ -7,7 +7,7 @@ Dataset Website: [https://mn.cs.tsinghua.edu.cn/avqa](https://mn.cs.tsinghua.edu
 
 ## Description
 ### Repo directories
-- ./: global config files, training, evaluating scripts;
+- ./configs: config files;
 - ./data: data dictionary;
 - ./preprocess: code and scripts for feature extraction;
 - ./backbones: six backbone models -- PSAC, HME, LADNet, ACRTransformer, HGA, HCRN;
