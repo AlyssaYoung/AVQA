@@ -32,13 +32,13 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 
 3. Data preprocessing
 
-**Extract audio waveforms.**
-```
-cd data
-mkdir audio
-sh extract_audio.sh
-```
-**Extract visual frames.**
+    **Extract audio waveforms.**
+    ```
+    cd data
+    mkdir audio
+    sh extract_audio.sh
+    ```
+    **Extract visual frames.**
 
 4. Feature extraction
     - Audio feature.
