@@ -36,7 +36,8 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     ```
     cd data
     mkdir audio
-    sh extract_audio.sh
+    cd ..
+    sh preprocess/extract_audio.sh
     ```
     **Extract visual frames.**
 
