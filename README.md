@@ -62,15 +62,17 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
         sh extract_motion_feat.sh
         ```
     **Preprocess questions.** 
-    - Download [glove pretrained 300d word vectors] to `data/glove/` and process it into a pickle file:
-    ```
-    cd preprocess/preprocess_text
-    python txt2pickle.py
-    ```
-    - Preprocess train/val questions:
-    ```
-    sh preprocess_text_feat.sh
-    ```
+    - Download [glove pretrained 300d word vectors](http://nlp.stanford.edu/data/glove.840B.300d.zip) to `data/glove/` and process it into a pickle file:
+        ```
+        cd data/glove
+        python txt2pickle.py
+        cd ../..
+        ```
+    - Preprocess train/val questions: Fix the file paths in `./preprocess/preprocess_text/preprocess_text_feat.sh` and run the command:
+        ```
+        cd preprocess/preprocess_text
+        sh preprocess_text_feat.sh
+        ```
 
 Finally, the feature dimensions of extracted features are as follows:
 |     | Dimension  |
