@@ -47,21 +47,30 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     pip install -r requirements.txt
     sh extract_audio_feat.sh
     ```
-    **Extract visual frames.** Videos are segmented into 8 clips, each clip contains 16 frames by default (following the setting in [HCRN](https://github.com/thaolmk54/hcrn-videoqa)). 
+    **Extract visual frames.** Videos are segmented into 8 clips, each clip contains 16 frames by default (following the setting in [HCRN](https://github.com/thaolmk54/hcrn-videoqa)). We have provided the instruction step by step:
     - Create a new python virtual environment and run the following command:
         ```
         cd preprocess/preprocess_visual/
         sh create_virtualenv.sh
         ```
-    - **To extract appearance feature:** Fix the file paths in `extract_appearance_feat.sh` and run the command:
+    - **Extract appearance feature:** Fix the file paths in `extract_appearance_feat.sh` and run the command:
         ```
         sh extract_appearance_feat.sh
         ```
-    - **To extract motion feature:** Download ResNeXt-101 [pretrained model](https://drive.google.com/drive/folders/1zvl89AgFAApbH0At-gMuZSeQB_LpNP-M)(resnext-101-kinetics.pth). Fix the file paths in `extract_motion_feat.sh` and run the command:
+    - **Extract motion feature:** Download ResNeXt-101 [pretrained model](https://drive.google.com/drive/folders/1zvl89AgFAApbH0At-gMuZSeQB_LpNP-M)(resnext-101-kinetics.pth). Fix the arguments of file paths in `extract_motion_feat.sh` and run the command:
         ```
         sh extract_motion_feat.sh
         ```
-    **Preprocess linguistic features.**  
+    **Preprocess questions.** 
+    - Download [glove pretrained 300d word vectors] to `data/glove/` and process it into a pickle file:
+    ```
+    cd preprocess/preprocess_text
+    python txt2pickle.py
+    ```
+    - Preprocess train/val questions:
+    ```
+    sh preprocess_text_feat.sh
+    ```
 
 Finally, the feature dimensions of extracted features are as follows:
 |     | Dimension  |
