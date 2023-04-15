@@ -32,7 +32,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 
 3. Data preprocessing and feature extraction
 
-    **Extract audio waveforms.** We write a shell script for you to extract audio waveforms. Just fix the directory path of raw videos in the script file `./preprocess/extract_audio.sh` and run the command:
+    **Extract audio waveforms.** We write a shell script for you to extract audio waveforms. Just fix the directory path of raw videos in the script file `extract_audio.sh` and run the command:
     ```
     cd data
     mkdir audio
@@ -41,7 +41,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     ```
     wav files path: `./data/audio`
 
-    **Extract audio features.** We have written the script `./preprocess/preprocess_audio/extract_audio_feat.sh` for audio feature extraction, just create a new python virtual environment and run the following command:
+    **Extract audio features.** We have written the script `extract_audio_feat.sh` for audio feature extraction, just create a new python virtual environment and run the following command:
     ```
     cd preprocess/preprocess_audio/
     pip install -r requirements.txt
@@ -68,7 +68,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
         python txt2pickle.py
         cd ../..
         ```
-    - Preprocess train/val questions: Fix the file paths in `./preprocess/preprocess_text/preprocess_text_feat.sh` and run the command:
+    - Preprocess train/val questions: Fix the file paths in `preprocess_text_feat.sh` and run the command:
         ```
         cd preprocess/preprocess_text
         sh preprocess_text_feat.sh
