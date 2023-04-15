@@ -49,15 +49,24 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     ```
     audio feature file path: `./data/feats/avqa_vlaudio_PANNs_feat.h5`
 
-    **Extract visual frames.** We have written the script `./preprocess/preprocess_visual/extract_visual_feat.sh` for appearance and motion feature extraction, just create a new python virtual environment and run the following command:
-    ```
-    cd preprocess/preprocess_visual/
-    pip install -r requirements.txt
-    sh extract_visual_feat.sh
-    ```
-    please download the pretrained resnext101 file to path: `./preprocess/preprocess_visual/pretrained/resnext-101-kinetics.pth`
-    appearance feat file path: `./data/feats/avqa_appearance_resnet101_feat.h5`
-    motion feat file path: `./data/feats/avqa_motion_resnext101_feat.h5`
+    **Extract visual frames.** Videos are segmented into 8 clips, each clip contains 16 frames by default (following the setting in [HCRN](https://github.com/thaolmk54/hcrn-videoqa)). 
+    - Create a new python virtual environment and run the following command:
+        ```
+        cd preprocess/preprocess_visual/
+        sh create_virtualenv.sh
+        ```
+    - To extract appearance feature: Fix the file paths in `extract_appearance_feat.sh` and run the command:
+        ```
+        sh extract_appearance_feat.sh
+        ```
+    - To extract motion feature: Download ResNeXt-101 [pretrained model](https://drive.google.com/drive/folders/1zvl89AgFAApbH0At-gMuZSeQB_LpNP-M), and place it to `./preprocess/preprocess_visual/pretrained/resnext-101-kinetics.pth`. Fix the file paths in `extract_motion_feat.sh` and run the command:
+        ```
+        sh extract_motion_feat.sh
+        ```
+
+    appearance feat file path: `./data/feats/avqa_appearance_resnet101_feat.h5`;
+
+    motion feat file path: `./data/feats/avqa_motion_resnext101_feat.h5`.
 
 Finally, the feature dimensions of extracted features are as follows:
 |     | Dimension  |

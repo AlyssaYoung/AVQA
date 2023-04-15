@@ -213,9 +213,9 @@ if __name__ == '__main__':
     parser.add_argument('--question_type', default='none', choices=['frameqa', 'count', 'transition', 'action', 'none'], type=str)
     parser.add_argument('--video_path', type=str, required=True)
     parser.add_argument('--video_name_mapping', type=str, required=True)
-    parser.add_argument('--annotation_file', type=str, required=True)
+    parser.add_argument('--annotation_path', type=str, required=True)
     # output
-    parser.add_argument('--out', dest='outfile',
+    parser.add_argument('--out_path', dest='outfile',
                         help='output filepath',
                         default="data/feats/{}_{}_{}_feat.h5", type=str)
     # image sizes
@@ -260,16 +260,10 @@ if __name__ == '__main__':
 
     print("Start extraction ......")
 
-    # annotation files
-    # args.annotation_file = '/DATA/DATANAS1/yangpinci/Datasets/VGGSound/VGGSound-QA/annotation/{}_qa.json'
-    # args.video_dir = '/DATA/DATANAS1/yangpinci/Datasets/VGGSound/VGGSound-QA/video'
-    # args.video_name_mapping = '/DATA/DATANAS1/yangpinci/Datasets/VGGSound/VGGSound-QA/annotation/video_map.json'
     video_paths = avqa.load_video_paths(args)
     random.shuffle(video_paths)
 
-    """
-    TODO:
-    fix the output h5 file path
-    """
+    args.annotation_file = os.path.join(args.annotation_path, '{}_qa.json')
+
     generate_h5(model, video_paths, args.num_clips,
                 args.outfile.format(args.dataset, args.feature_type, args.model))
