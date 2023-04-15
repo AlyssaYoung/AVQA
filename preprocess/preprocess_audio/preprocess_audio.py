@@ -63,6 +63,11 @@ def get_audio_embedding(ckpt_path, feature_type, audio_path, sample_rate, window
 
     return embedding
 
+"""
+TODO:
+2023-04-15: delete the irrelevant notes
+"""
+
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Example of parser. ')

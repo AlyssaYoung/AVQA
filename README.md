@@ -41,7 +41,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     ```
     wav files path: `./data/audio`
 
-    **Extract audio features.** We have written the script for audio feature extraction, just create a new python virtual environment and run the following command:
+    **Extract audio features.** We have written the script `./preprocess/preprocess_audio/extract_audio_feat.sh` for audio feature extraction, just create a new python virtual environment and run the following command:
     ```
     cd preprocess/preprocess_audio/
     pip install -r requirements.txt
@@ -49,10 +49,14 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     ```
     audio feature file path: `./data/feats/xxx.h5`
 
-    **Extract visual frames.** 
-
-    - Appearance feature.
-    - Motion feature.
+    **Extract visual frames.** We have written the script `./preprocess/preprocess_visual/extract_visual_feat.sh` for appearance and motion feature extraction, just create a new python virtual environment and run the following command:
+    ```
+    cd preprocess/preprocess_visual/
+    pip install -r requirements.txt
+    sh extract_visual_feat.sh
+    ```
+    appearance feat file path: `./data/feats/xxx.h5`
+    motion feat file path: `./data/feats/xxx.h5`
 
 Finally, the feature dimensions of extracted features are as follows:
 |     | Dimension  |
