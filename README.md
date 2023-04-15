@@ -47,7 +47,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     pip install -r requirements.txt
     sh extract_audio_feat.sh
     ```
-    audio feature file path: `./data/feats/xxx.h5`
+    audio feature file path: `./data/feats/avqa_vlaudio_PANNs_feat.h5`
 
     **Extract visual frames.** We have written the script `./preprocess/preprocess_visual/extract_visual_feat.sh` for appearance and motion feature extraction, just create a new python virtual environment and run the following command:
     ```
@@ -55,8 +55,9 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     pip install -r requirements.txt
     sh extract_visual_feat.sh
     ```
-    appearance feat file path: `./data/feats/xxx.h5`
-    motion feat file path: `./data/feats/xxx.h5`
+    please download the pretrained resnext101 file to path: `./preprocess/preprocess_visual/pretrained/resnext-101-kinetics.pth`
+    appearance feat file path: `./data/feats/avqa_appearance_resnet101_feat.h5`
+    motion feat file path: `./data/feats/avqa_motion_resnext101_feat.h5`
 
 Finally, the feature dimensions of extracted features are as follows:
 |     | Dimension  |

@@ -83,6 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--feature_type', type=str, required=True)
     parser.add_argument('--checkpoint_path', type=str, required=True)
     parser.add_argument('--audio_path', type=str, required=True)
+    parser.add_argument('--video_name_mapping', type=str, required=True)
     parser.add_argument('--cuda', action='store_true', default=True)
     # output
     # parser.add_argument('--out', type=str, help='output filepath', default="{}_{}_{}_feat.h5")
@@ -91,7 +92,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
 
-    with open('video_map.json','r') as f:
+    with open(args.video_name_mapping,'r') as f:
         name_id_pairs = json.load(f)
 
     audio_paths = [(os.path.join(args.audio_path, key+'.wav'), name_id_pairs[key]) for key in name_id_pairs]

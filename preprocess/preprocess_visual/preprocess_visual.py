@@ -13,10 +13,6 @@ from models import resnext
 from datautils import utils
 from datautils import avqa
 
-"""
-TODO:
-delete preprocess code of tgif_qa, msrvtt_qa, msvd_qa, fix vggsound_qa to avqa
-"""
 
 def build_resnet():
     if not hasattr(torchvision.models, args.model):
@@ -33,8 +29,8 @@ def build_resnext():
                               last_fc=False)
     model = model.cuda()
     model = nn.DataParallel(model, device_ids=None)
-    assert os.path.exists('preprocess/pretrained/resnext-101-kinetics.pth')
-    model_data = torch.load('preprocess/pretrained/resnext-101-kinetics.pth', map_location='cpu')
+    assert os.path.exists('./pretrained/resnext-101-kinetics.pth')
+    model_data = torch.load('./pretrained/resnext-101-kinetics.pth', map_location='cpu')
     model.load_state_dict(model_data['state_dict'])
     model.eval()
     return model
@@ -144,12 +140,6 @@ def generate_h5(model, video_ids, num_clips, outfile):
     Returns:
         h5 file containing visual features of splitted clips.
     """
-    if args.dataset == "tgif-qa":
-        if not os.path.exists('data/tgif-qa/{}'.format(args.question_type)):
-            os.makedirs('data/tgif-qa/{}'.format(args.question_type))
-    else:
-        if not os.path.exists('data/{}'.format(args.dataset)):
-            os.makedirs('data/{}'.format(args.dataset))
 
     dataset_size = len(video_ids)
 
@@ -208,6 +198,7 @@ def generate_h5(model, video_ids, num_clips, outfile):
                     .format(i1, dataset_size, _t['misc'].average_time,
                             _t['misc'].average_time * (dataset_size - i1) / 3600))
 
+
 if __name__ == '__main__':
 
     appearance_model_list = ['resnet50', 'resnet101', 'resnet152']
@@ -218,12 +209,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu_id', type=int, default=0, help='specify which gpu will be used')
     # dataset info
-    parser.add_argument('--dataset', default='msvd-qa', choices=['tgif-qa', 'msvd-qa', 'msrvtt-qa', 'vggsound-qa'], type=str)
+    parser.add_argument('--dataset', default='avqa', type=str)
     parser.add_argument('--question_type', default='none', choices=['frameqa', 'count', 'transition', 'action', 'none'], type=str)
+    parser.add_argument('--video_path', type=str, required=True)
+    parser.add_argument('--video_name_mapping', type=str, required=True)
+    parser.add_argument('--annotation_file', type=str, required=True)
     # output
     parser.add_argument('--out', dest='outfile',
                         help='output filepath',
-                        default="data/{}/{}_{}_{}_feat.h5", type=str)
+                        default="data/feats/{}_{}_{}_feat.h5", type=str)
     # image sizes
     parser.add_argument('--num_clips', default=8, type=int)
     parser.add_argument('--num_frames', default=16, type=int)
@@ -267,40 +261,15 @@ if __name__ == '__main__':
     print("Start extraction ......")
 
     # annotation files
-    if(args.dataset == 'vggsound-qa'):
-        args.annotation_file = '/DATA/DATANAS1/yangpinci/Datasets/VGGSound/VGGSound-QA/annotation/{}_qa.json'
-        args.video_dir = '/DATA/DATANAS1/yangpinci/Datasets/VGGSound/VGGSound-QA/video'
-        args.video_name_mapping = '/DATA/DATANAS1/yangpinci/Datasets/VGGSound/VGGSound-QA/annotation/video_map.json'
-        video_paths = avqa.load_video_paths(args)
-        random.shuffle(video_paths)
+    # args.annotation_file = '/DATA/DATANAS1/yangpinci/Datasets/VGGSound/VGGSound-QA/annotation/{}_qa.json'
+    # args.video_dir = '/DATA/DATANAS1/yangpinci/Datasets/VGGSound/VGGSound-QA/video'
+    # args.video_name_mapping = '/DATA/DATANAS1/yangpinci/Datasets/VGGSound/VGGSound-QA/annotation/video_map.json'
+    video_paths = avqa.load_video_paths(args)
+    random.shuffle(video_paths)
 
-        generate_h5(model, video_paths, args.num_clips,
-                    args.outfile.format(args.dataset, args.dataset, args.feature_type, args.model))
-
-    if args.dataset == 'tgif-qa':
-        args.annotation_file = '/DATA/DATANAS1/hrz/dataset/tgif-qa/Total_{}_question.csv'
-        args.video_dir = '/DATA/DATANAS1/hrz/dataset/tgif-qa/gifs'
-        args.outfile = 'data/{}/{}/{}_{}_{}_feat.h5'
-        video_paths = tgif_qa.load_video_paths(args)
-        random.shuffle(video_paths)
-
-        generate_h5(model, video_paths, args.num_clips,
-                    args.outfile.format(args.dataset, args.question_type, args.dataset, args.question_type, args.feature_type))
-    elif args.dataset == 'msrvtt-qa':
-        args.annotation_file = '/DATA/DATANAS1/hrz/dataset/MSRVTT-QA/{}_qa.json'
-        args.video_dir = '/DATA/DATANAS1/hrz/dataset/MSRVTT-QA/video/'
-        video_paths = msrvtt_qa.load_video_paths(args)
-        random.shuffle(video_paths)
-
-        generate_h5(model, video_paths, args.num_clips,
-                    args.outfile.format(args.dataset, args.dataset, args.feature_type, args.model))
-
-    elif args.dataset == 'msvd-qa':
-        args.annotation_file = '/DATA/DATANAS1/hrz/dataset/MSVD-QA-RM/{}_qa.json'
-        args.video_dir = '/DATA/DATANAS1/hrz/dataset/MSVD-QA-RM/video/'
-        args.video_name_mapping = '/DATA/DATANAS1/hrz/dataset/MSVD-QA-RM/youtube_mapping.txt'
-        video_paths = msvd_qa.load_video_paths(args)
-        random.shuffle(video_paths)
-
-        generate_h5(model, video_paths, args.num_clips,
-                    args.outfile.format(args.dataset, args.dataset, args.feature_type, args.model))
+    """
+    TODO:
+    fix the output h5 file path
+    """
+    generate_h5(model, video_paths, args.num_clips,
+                args.outfile.format(args.dataset, args.feature_type, args.model))

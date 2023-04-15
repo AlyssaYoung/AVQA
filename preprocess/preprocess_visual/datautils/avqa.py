@@ -22,7 +22,7 @@ def load_video_paths(args):
         video_dict = json.load(f)
 
     for video_name in video_names:
-        video_paths.append(((os.path.join(args.video_dir + '{}.mp4'.format(video_name))), video_dict[video_name]))
+        video_paths.append(((os.path.join(args.video_path + '{}.mp4'.format(video_name))), video_dict[video_name]))
     return video_paths
 
 def multichoice_encoding_data(args, vocab, questions, video_names, video_ids, answers, ans_candidates, question_category):
