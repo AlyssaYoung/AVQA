@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# custom directories
+.data/
+
+# pretrained models
+*.pth

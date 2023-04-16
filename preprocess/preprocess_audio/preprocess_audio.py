@@ -87,7 +87,7 @@ if __name__ == '__main__':
     parser.add_argument('--cuda', action='store_true', default=True)
     # output
     # parser.add_argument('--out', type=str, help='output filepath', default="{}_{}_{}_feat.h5")
-    parser.add_argument('--outfile', type=str, help='output filepath', required=True)
+    parser.add_argument('--out_path', type=str, help='output filepath', required=True)
     parser.add_argument('--logfile', type=str, help='logger filepath', default="log.txt")
     
     args = parser.parse_args()
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     # outfile = args.out.format('vggsound-qa', args.feature_type, 'PANNs')
     logger = logger.Logger(args.logfile)
     
-    with h5py.File(args.outfile, 'w') as fd:
+    with h5py.File(args.out_path, 'w') as fd:
         feat_dset = None
         video_ids_dset = None
         i0 = 0

@@ -1,6 +1,6 @@
 #!/bin/bash
 # change the directory path of raw videos
-video_dir='xxx/video'
+video_dir='data/video'
 audio_dir='data/audio'
 
 echo "Transfer mp4 file to wav file ..."

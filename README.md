@@ -32,13 +32,15 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
     cd data
     mkdir audio
     cd ..
-    sh preprocess/extract_audio.sh
+    bash preprocess/extract_audio.sh
     ```
     wav files path: `./data/audio`
 
     **Extract audio features.** We have written the script `extract_audio_feat.sh` for audio feature extraction, just create a new python virtual environment and run the following command:
     ```
     cd preprocess/preprocess_audio/
+    conda create -n preprocess_audio python=3.7
+    conda activate preprocess_audio
     pip install -r requirements.txt
     sh extract_audio_feat.sh
     ```
@@ -79,11 +81,11 @@ Finally, the feature dimensions of extracted features are as follows:
 Note: You can also develop data preprocessing and feature extraction methods in your own original and innonative ways. Here we just provide a possible way to utilize the audio and visual data :)
 
 ### Our proposed HAVF
-1. PSAC+HAVF
-2. HME+HAVF
-3. LADNet+HAVF
-4. ACRTransformer+HAVF
-5. HGA+HAVF
+1. PSAC+HAVF: comming soon!
+2. HME+HAVF: comming soon!
+3. LADNet+HAVF: comming soon!
+4. ACRTransformer+HAVF: comming soon!
+5. HGA+HAVF: comming soon!
 6. HCRN+HAVF: Please refer to [HAVF/hcrn_havf/README.md](https://github.com/AlyssaYoung/AVQA/tree/main/HAVF/hcrn_havf).
 ## Results
 <div align="center">
@@ -95,7 +97,7 @@ Note: You can also develop data preprocessing and feature extraction methods in 
 - Pip
 
 ## Notice
-To improve the code readability, we have recently rebuilded our code. You may encounter some bugs or find performance difference compared with the results reported in the paper. Please feel free to contact us if you have any questions or suggestions. Both [issues](https://github.com/AlyssaYoung/AVQA/issues) and emails(pinci_yang@outlook.com) are available.
+To improve the code readability, we have recently rebuilded our code. It costs a lot of time. You may encounter some bugs or find performance difference compared with the results reported in the paper. Please feel free to contact us if you have any questions or suggestions. Both [issues](https://github.com/AlyssaYoung/AVQA/issues) and emails(pinci_yang@outlook.com) are available.
 
 ## Citation
 If you find our paper or code useful, please cite our paper using the following bibtex:
