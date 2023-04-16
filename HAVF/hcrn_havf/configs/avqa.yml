@@ -1,14 +1,8 @@
-gpu_id: 4
+gpu_id: 6
 multi_gpus: False
 num_workers: 4
 seed: 666
-exp_name: 'VGGSound-QA'
-model_name: 'multilevel'
-level: 'middle'
-fuse_type: 'concat'
-ensemble: False
-useAudio: True
-ablation: 'app_ques'
+exp_name: 'hcrn_havf_exp'
 
 train:
   lr: 0.0001
@@ -32,8 +26,8 @@ test:
   write_preds: True
 
 dataset:
-  name: 'vggsound-qa'
+  name: 'avqa'
   question_type: 'action'
-  data_dir: '/DATA/DATANAS1/hrz/videoqa/hcrn-vggsound/data/vggsound-qa'
-  save_dir: '/DATA/DATANAS1/yangpinci/VGGSound_QA/hcrn-block/exp6_ablation_app_ques/'
+  data_dir: 'data/feats'
+  save_dir: 'out/hcrn_havf_exp'
   ans_count: 4

@@ -122,11 +122,11 @@ class AVQADataLoader(DataLoader):
             answers = obj['answers']
             glove_matrix = obj['glove']
             
-            ans_candidates = np.zeros(5)
-            ans_candidates_len = np.zeros(5)
-            if question_type in ['action', 'transition']:
-                ans_candidates = obj['ans_candidates']
-                ans_candidates_len = obj['ans_candidates_len']
+            ans_candidates = np.zeros(4)
+            ans_candidates_len = np.zeros(4)
+            # if question_type in ['action', 'transition']:
+            #     ans_candidates = obj['ans_candidates']
+            #     ans_candidates_len = obj['ans_candidates_len']
 
         if 'train_num' in kwargs:
             trained_num = kwargs.pop('train_num')
@@ -136,9 +136,9 @@ class AVQADataLoader(DataLoader):
                 video_ids = video_ids[:trained_num]
                 q_ids = q_ids[:trained_num]
                 answers = answers[:trained_num]
-                if question_type in ['action', 'transition']:
-                    ans_candidates = ans_candidates[:trained_num]
-                    ans_candidates_len = ans_candidates_len[:trained_num]
+                # if question_type in ['action', 'transition']:
+                #     ans_candidates = ans_candidates[:trained_num]
+                #     ans_candidates_len = ans_candidates_len[:trained_num]
         if 'val_num' in kwargs:
             val_num = kwargs.pop('val_num')
             if val_num > 0:

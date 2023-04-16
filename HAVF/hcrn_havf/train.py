@@ -42,7 +42,7 @@ def train(cfg):
         'drop_last': True,
         'useAudio': cfg.useAudio
     }
-    train_loader = VideoQADataLoader(**train_loader_kwargs)
+    train_loader = AVQADataLoader(**train_loader_kwargs)
     logging.info("number of train instances: {}".format(len(train_loader.dataset)))
     if cfg.val.flag:
         val_loader_kwargs = {
@@ -59,7 +59,7 @@ def train(cfg):
             'shuffle': False,
             'useAudio': cfg.useAudio            
         }
-        val_loader = VideoQADataLoader(**val_loader_kwargs)
+        val_loader = AVQADataLoader(**val_loader_kwargs)
         logging.info("number of val instances: {}".format(len(val_loader.dataset)))
 
     logging.info("Create model.........")
@@ -96,10 +96,7 @@ def train(cfg):
     optimizer = optim.Adam([param for param in model.parameters() if param.requires_grad == True], cfg.train.lr)
     
     start_epoch = 0
-    if cfg.dataset.question_type == 'count':
-        best_val = 100.0
-    else:
-        best_val = 0
+    best_val = 0
     if cfg.train.restore:
         print("Restore checkpoint and optimizer...")
         ckpt = os.path.join(cfg.dataset.save_dir, 'ckpt', 'model.pt')
@@ -107,10 +104,7 @@ def train(cfg):
         start_epoch = ckpt['epoch'] + 1
         model.load_state_dict(ckpt['state_dict'])
         optimizer.load_state_dict(ckpt['optimizer'])
-    if cfg.dataset.question_type in ['frameqa', 'none']:
-        criterion = nn.CrossEntropyLoss().to(device)
-    elif cfg.dataset.question_type == 'count':
-        criterion = nn.MSELoss().to(device)
+    criterion = nn.CrossEntropyLoss().to(device)
     logging.info("Start training........")
     for epoch in range(start_epoch, cfg.train.max_epochs):
         logging.info('>>>>>> epoch {epoch} <<<<<<'.format(epoch=colored("{}".format(epoch), "green", attrs=["bold"])))
@@ -128,30 +122,14 @@ def train(cfg):
             batch_size = answers.size(0)
             optimizer.zero_grad()
             logits = model(*batch_input)
-            if cfg.dataset.question_type in ['action', 'transition']:
-                batch_agg = np.concatenate(np.tile(np.arange(batch_size).reshape([batch_size, 1]),
-                                                   [1, cfg.dataset.ans_count])) * cfg.dataset.ans_count  # [0, 0, 0, 0, 0, 5, 5, 5, 5, 1, ...]
-                answers_agg = tile(answers, 0, cfg.dataset.ans_count)
-                loss = torch.max(torch.tensor(0.0).cuda(),
-                                 1.0 + logits - logits[answers_agg + torch.from_numpy(batch_agg).cuda()])
-                loss = loss.sum() / torch.tensor(1.0*batch_size).cuda()
-                loss.backward()
 
-                total_loss += loss.detach()
-                avg_loss = total_loss / (i + 1)
-                nn.utils.clip_grad_norm_(model.parameters(), max_norm=12)
-                optimizer.step()
-                preds = torch.argmax(logits.view(batch_size, cfg.dataset.ans_count), dim=1)
-                aggreeings = (preds == answers)
-
-            else:
-                loss = criterion(logits, answers)
-                loss.backward()
-                total_loss += loss.detach()
-                avg_loss = total_loss / (i + 1)
-                nn.utils.clip_grad_norm_(model.parameters(), max_norm=12)
-                optimizer.step()
-                aggreeings = batch_accuracy(logits, answers)
+            loss = criterion(logits, answers)
+            loss.backward()
+            total_loss += loss.detach()
+            avg_loss = total_loss / (i + 1)
+            nn.utils.clip_grad_norm_(model.parameters(), max_norm=12)
+            optimizer.step()
+            aggreeings = batch_accuracy(logits, answers)
 
             total_acc += aggreeings.sum().item()
             count += answers.size(0)
@@ -167,14 +145,10 @@ def train(cfg):
                     exp_name=cfg.exp_name))
             sys.stdout.flush()
         sys.stdout.write("\n")
-        
-        if cfg.dataset.question_type == 'count':
-            if (epoch + 1) % 5 == 0:
-                optimizer = step_decay(cfg, optimizer)
-        else:
-            if (epoch + 1) % 10 == 0:
-                optimizer = step_decay(cfg, optimizer)
-        
+    
+        if (epoch + 1) % 10 == 0:
+            optimizer = step_decay(cfg, optimizer)
+    
         #scheduler.step()
         sys.stdout.flush()
         logging.info("Epoch = %s   avg_loss = %.3f    avg_acc = %.3f" % (epoch, avg_loss, train_accuracy))
@@ -276,12 +250,11 @@ def main():
     parser.add_argument('--cfg', dest='cfg_file', help='optional config file', default='configs/msvd_qa.yml', type=str)
     parser.add_argument('--app_feat', default='resnet101', type=str)
     parser.add_argument('--motion_feat', default='resnext101', type=str)
+    parser.add_argument('--audio_feat', default='PANNs', type=str)
     args = parser.parse_args()
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
 
-    assert cfg.dataset.name in ['tgif-qa', 'msrvtt-qa', 'msvd-qa', 'vggsound-qa']
-    assert cfg.dataset.question_type in ['frameqa', 'count', 'transition', 'action', 'none']
     # check if the data folder exists
     assert os.path.exists(cfg.dataset.data_dir)
     # check if k_max is set correctly
@@ -311,32 +284,23 @@ def main():
         logging.info(k + ':' + str(v))
     # concat absolute path of input files
 
-    if cfg.dataset.name == 'tgif-qa':
-        cfg.dataset.train_question_pt = os.path.join(cfg.dataset.data_dir,
-                                                     cfg.dataset.train_question_pt.format(cfg.dataset.name, cfg.dataset.question_type))
-        cfg.dataset.val_question_pt = os.path.join(cfg.dataset.data_dir,
-                                                   cfg.dataset.val_question_pt.format(cfg.dataset.name, cfg.dataset.question_type))
-        cfg.dataset.vocab_json = os.path.join(cfg.dataset.data_dir, cfg.dataset.vocab_json.format(cfg.dataset.name, cfg.dataset.question_type))
+        
+    #cfg.dataset.question_type = 'none'
+    cfg.dataset.appearance_feat = '{}_appearance_{}_feat.h5'
+    cfg.dataset.motion_feat = '{}_motion_{}_feat.h5'
+    cfg.dataset.vl_audio_feat = '{}_vlaudio_{}_feat.h5'
+    cfg.dataset.vocab_json = '{}_vocab.json'
+    cfg.dataset.train_question_pt = '{}_train_questions.pt'
+    cfg.dataset.val_question_pt = '{}_val_questions.pt'
+    cfg.dataset.train_question_pt = os.path.join(cfg.dataset.data_dir,
+                                                    cfg.dataset.train_question_pt.format(cfg.dataset.name))
+    cfg.dataset.val_question_pt = os.path.join(cfg.dataset.data_dir,
+                                                cfg.dataset.val_question_pt.format(cfg.dataset.name))
+    cfg.dataset.vocab_json = os.path.join(cfg.dataset.data_dir, cfg.dataset.vocab_json.format(cfg.dataset.name))
 
-        cfg.dataset.appearance_feat = os.path.join(cfg.dataset.data_dir, cfg.dataset.appearance_feat.format(cfg.dataset.name, cfg.dataset.question_type))
-        cfg.dataset.motion_feat = os.path.join(cfg.dataset.data_dir, cfg.dataset.motion_feat.format(cfg.dataset.name, cfg.dataset.question_type))
-    else:
-        #cfg.dataset.question_type = 'none'
-        cfg.dataset.appearance_feat = '{}_appearance_{}_feat.h5'
-        cfg.dataset.motion_feat = '{}_motion_{}_feat.h5'
-        cfg.dataset.vocab_json = '{}_vocab.json'
-        cfg.dataset.train_question_pt = '{}_train_questions.pt'
-        cfg.dataset.val_question_pt = '{}_val_questions.pt'
-        cfg.dataset.train_question_pt = os.path.join(cfg.dataset.data_dir,
-                                                     cfg.dataset.train_question_pt.format(cfg.dataset.name))
-        cfg.dataset.val_question_pt = os.path.join(cfg.dataset.data_dir,
-                                                   cfg.dataset.val_question_pt.format(cfg.dataset.name))
-        cfg.dataset.vocab_json = os.path.join(cfg.dataset.data_dir, cfg.dataset.vocab_json.format(cfg.dataset.name))
-
-        cfg.dataset.appearance_feat = os.path.join(cfg.dataset.data_dir, cfg.dataset.appearance_feat.format(cfg.dataset.name, args.app_feat))
-        cfg.dataset.motion_feat = os.path.join(cfg.dataset.data_dir, cfg.dataset.motion_feat.format(cfg.dataset.name, args.motion_feat))
-    
-    
+    cfg.dataset.appearance_feat = os.path.join(cfg.dataset.data_dir, cfg.dataset.appearance_feat.format(cfg.dataset.name, args.app_feat))
+    cfg.dataset.motion_feat = os.path.join(cfg.dataset.data_dir, cfg.dataset.motion_feat.format(cfg.dataset.name, args.motion_feat))
+    cfg.dataset.vl_audio_feat = os.path.join(cfg.dataset.data_dir, cfg.dataset.vl_audio_feat.format(cfg.dataset.name, args.audio_feat))
 
     # set random seed
     torch.manual_seed(cfg.seed)

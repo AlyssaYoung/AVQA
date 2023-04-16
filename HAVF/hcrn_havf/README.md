@@ -8,10 +8,10 @@ pip install -r requirements.txt
 ```      
 #### Training
 ```bash
-python train.py --cfg configs/tgif_qa_action.yml
+python train.py --cfg configs/avqa.yml
 ```
 #### Evaluation
 To evaluate the trained model, run the following:
 ```bash
-python validate.py --cfg configs/tgif_qa_action.yml
+python validate.py --cfg configs/avqa.yml
 ```
