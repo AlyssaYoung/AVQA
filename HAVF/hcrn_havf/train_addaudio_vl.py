@@ -80,7 +80,7 @@ def train(cfg):
             'num_workers': cfg.num_workers,
             'shuffle': False,
             'useAudio': cfg.useAudio,
-            'ablation': cfg.ablation            
+            'ablation': cfg.ablation
         }
         val_loader = VideoQADataLoader(**val_loader_kwargs)
         logging.info("number of val instances: {}".format(len(val_loader.dataset)))

@@ -34,13 +34,13 @@ def train(cfg):
         'appearance_feat': cfg.dataset.appearance_feat,
         'motion_feat': cfg.dataset.motion_feat,
         'vl_audio_feat': cfg.dataset.vl_audio_feat,
-        'cl_audio_feat': cfg.dataset.cl_audio_feat,
         'train_num': cfg.train.train_num,
         'batch_size': cfg.train.batch_size,
         'num_workers': cfg.num_workers,
         'shuffle': True,
         'drop_last': True,
-        'useAudio': cfg.useAudio
+        'useAudio': cfg.useAudio,
+        'ablation': cfg.ablation
     }
     train_loader = AVQADataLoader(**train_loader_kwargs)
     logging.info("number of train instances: {}".format(len(train_loader.dataset)))
@@ -52,12 +52,12 @@ def train(cfg):
             'appearance_feat': cfg.dataset.appearance_feat,
             'motion_feat': cfg.dataset.motion_feat,
             'vl_audio_feat': cfg.dataset.vl_audio_feat,
-            'cl_audio_feat': cfg.dataset.vl_audio_feat,
             'val_num': cfg.val.val_num,
             'batch_size': cfg.train.batch_size,
             'num_workers': cfg.num_workers,
             'shuffle': False,
-            'useAudio': cfg.useAudio            
+            'useAudio': cfg.useAudio,
+            'ablation': cfg.ablation
         }
         val_loader = AVQADataLoader(**val_loader_kwargs)
         logging.info("number of val instances: {}".format(len(val_loader.dataset)))
@@ -96,7 +96,16 @@ def train(cfg):
     optimizer = optim.Adam([param for param in model.parameters() if param.requires_grad == True], cfg.train.lr)
     
     start_epoch = 0
-    best_val = 0
+    best_val = 0.
+    best_which = 0.
+    best_comefrom = 0.
+    best_happening = 0.
+    best_where = 0.
+    best_why = 0.
+    best_beforenext = 0.
+    best_when = 0.
+    best_usedfor = 0.
+
     if cfg.train.restore:
         print("Restore checkpoint and optimizer...")
         ckpt = os.path.join(cfg.dataset.save_dir, 'ckpt', 'model.pt')
@@ -123,24 +132,31 @@ def train(cfg):
             optimizer.zero_grad()
             logits = model(*batch_input)
 
-            loss = criterion(logits, answers)
+            batch_agg = np.concatenate(np.tile(np.arange(batch_size).reshape([batch_size, 1]),
+                                            [1, cfg.dataset.ans_count])) * cfg.dataset.ans_count  # [0, 0, 0, 0, 0, 5, 5, 5, 5, 1, ...]
+            answers_agg = tile(answers, 0, cfg.dataset.ans_count)
+            loss = torch.max(torch.tensor(0.0).cuda(),
+                            1.0 + logits - logits[answers_agg + torch.from_numpy(batch_agg).cuda()])
+            loss = loss.sum() / torch.tensor(1.0*batch_size).cuda()
             loss.backward()
+
             total_loss += loss.detach()
             avg_loss = total_loss / (i + 1)
             nn.utils.clip_grad_norm_(model.parameters(), max_norm=12)
             optimizer.step()
-            aggreeings = batch_accuracy(logits, answers)
+            preds = torch.argmax(logits.view(batch_size, cfg.dataset.ans_count), dim=1)
+            aggreeings = (preds == answers)
 
             total_acc += aggreeings.sum().item()
             count += answers.size(0)
             train_accuracy = total_acc / count
             sys.stdout.write(
-                "\rProgress = {progress}   ce_loss = {ce_loss}   avg_loss = {avg_loss}    train_acc = {train_acc}    avg_acc = {avg_acc}    exp: {exp_name}".format(
+                "\rProgress = {progress}  ce_loss = {ce_loss}  avg_loss = {avg_loss}   train_acc = {train_acc}   avg_acc = {avg_acc}   exp: {exp_name}".format(
                     progress=colored("{:.3f}".format(progress), "green", attrs=['bold']),
                     ce_loss=colored("{:.4f}".format(loss.item()), "blue", attrs=['bold']),
                     avg_loss=colored("{:.4f}".format(avg_loss), "red", attrs=['bold']),
                     train_acc=colored("{:.4f}".format(aggreeings.float().mean().cpu().numpy()), "blue",
-                                        attrs=['bold']),
+                                    attrs=['bold']),
                     avg_acc=colored("{:.4f}".format(train_accuracy), "red", attrs=['bold']),
                     exp_name=cfg.exp_name))
             sys.stdout.flush()
@@ -247,7 +263,7 @@ def save_checkpoint(epoch, model, optimizer, model_kwargs, filename):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cfg', dest='cfg_file', help='optional config file', default='configs/msvd_qa.yml', type=str)
+    parser.add_argument('--cfg', dest='cfg_file', help='optional config file', default='configs/avqa.yml', type=str)
     parser.add_argument('--app_feat', default='resnet101', type=str)
     parser.add_argument('--motion_feat', default='resnext101', type=str)
     parser.add_argument('--audio_feat', default='PANNs', type=str)
