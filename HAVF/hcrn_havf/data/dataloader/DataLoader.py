@@ -43,8 +43,11 @@ def load_vocab(path):
 class AVQADataset(Dataset):
 
     def __init__(self, answers, ans_candidates, ans_candidates_len, questions, questions_len, video_ids, q_ids,
-                 app_feature_h5, app_feat_id_to_index, motion_feature_h5, motion_feat_id_to_index):
+                 app_feature_h5, app_feat_id_to_index, motion_feature_h5, motion_feat_id_to_index, vl_audio_feat, 
+                 vlaudio_feat_id_to_index, useAudio=True, ablation='none'):
         # convert data to tensor
+        self.useAudio = useAudio
+        self.ablation = ablation
         self.all_answers = answers
         self.all_questions = torch.LongTensor(np.asarray(questions))
         self.all_questions_len = torch.LongTensor(np.asarray(questions_len))
@@ -52,15 +55,17 @@ class AVQADataset(Dataset):
         self.all_q_ids = q_ids
         self.app_feature_h5 = app_feature_h5
         self.motion_feature_h5 = motion_feature_h5
+        self.vlaudio_feature_h5 = vlaudio_feature_h5
         self.app_feat_id_to_index = app_feat_id_to_index
         self.motion_feat_id_to_index = motion_feat_id_to_index
+        self.vlaudio_feat_id_to_index = vlaudio_feat_id_to_index
 
         self.f_app = h5py.File(self.app_feature_h5, 'r')
         self.f_motion = h5py.File(self.motion_feature_h5, 'r')
+        self.f_vlaudio = h5py.File(self.vl_audio_feature_h5, 'r')
         self.app_feature = self.f_app['resnet_features']
         self.motion_feature = self.f_motion['resnext_features']
-        #self.app_feature = self.f_app.get('resnet_features')[:]
-        #self.motion_feature = self.f_motion.get('resnext_features')[:]
+        self.vlaudio_feature = self.f_vlaudio['vlaudio_features']
 
         if not np.any(ans_candidates):
             self.question_type = 'openended'
@@ -82,22 +87,64 @@ class AVQADataset(Dataset):
         question_idx = self.all_q_ids[index]
         app_index = self.app_feat_id_to_index[str(video_idx)]
         motion_index = self.motion_feat_id_to_index[str(video_idx)]
+        vlaudio_index = self.vlaudio_feat_id_to_index[str(video_idx)]
 
-        #appearance_feat = self.f_app['resnet_features'][app_index]
-        #motion_feat = self.f_motion['resnext_features'][motion_index]
         appearance_feat = self.app_feature[app_index]  # (8, 16, 2048)
         motion_feat = self.motion_feature[motion_index]  # (8, 2048)
-        #with h5py.File(self.app_feature_h5, 'r') as f_app:
-        #    appearance_feat = f_app['resnet_features'][app_index]  # (8, 16, 2048)
-        #with h5py.File(self.motion_feature_h5, 'r') as f_motion:
-        #    motion_feat = f_motion['resnext_features'][motion_index]  # (8, 2048)
+        vlaudio_feat = self.vlaudio_feature[vlaudio_index] # (2048,)
+
         appearance_feat = torch.from_numpy(appearance_feat)
         motion_feat = torch.from_numpy(motion_feat)
+        vl_audio_feat = torch.from_numpy(vlaudio_feat)
+
+        if self.ablation == 'ques':
+            appearance_feat = torch.zeros_like(appearance_feat)
+            motion_feat = torch.zeros_like(motion_feat)
+            vl_audio_feat = torch.zeros_like(vl_audio_feat)
+            
+        elif self.ablation == 'app':
+            question = torch.zeros_like(question)
+            motion_feat = torch.zeros_like(motion_feat)
+            vl_audio_feat = torch.zeros_like(vl_audio_feat)
+            
+        elif self.ablation == 'mot':
+            question = torch.zeros_like(question)
+            appearance_feat = torch.zeros_like(appearance_feat)
+            vl_audio_feat = torch.zeros_like(vl_audio_feat)
+            
+        elif self.ablation == 'app_mot':
+            question = torch.zeros_like(question)
+            vl_audio_feat = torch.zeros_like(vl_audio_feat)
+            
+        elif self.ablation == 'aud':
+            question = torch.zeros_like(question)
+            appearance_feat = torch.zeros_like(appearance_feat)
+            motion_feat = torch.zeros_like(motion_feat)
+            
+        elif self.ablation == 'app_ques':
+            motion_feat = torch.zeros_like(motion_feat)
+            vl_audio_feat = torch.zeros_like(vl_audio_feat)
+            
+        elif self.ablation == 'mot_ques':
+            appearance_feat = torch.zeros_like(appearance_feat)
+            vl_audio_feat = torch.zeros_like(vl_audio_feat)
+            
+        elif self.ablation == 'app_mot_ques':
+            vl_audio_feat = torch.zeros_like(vl_audio_feat)
+            
+        elif self.ablation == 'aud_ques':
+            appearance_feat = torch.zeros_like(appearance_feat)
+            motion_feat = torch.zeros_like(motion_feat)
+            
         
-        
-        return (
-            video_idx, question_idx, answer, ans_candidates, ans_candidates_len, appearance_feat, motion_feat, question,
-            question_len)
+        if self.useAudio:
+            return (
+                video_idx, question_idx, question_category, answer, ans_candidates, ans_candidates_len, appearance_feat, 
+                motion_feat, vl_audio_feat, question, question_len)
+        else:
+            return (
+                video_idx, question_idx, answer, ans_candidates, ans_candidates_len, appearance_feat, motion_feat, question,
+                question_len)
 
     def __len__(self):
         return len(self.all_questions)
@@ -112,7 +159,7 @@ class AVQADataLoader(DataLoader):
 
         question_pt_path = str(kwargs.pop('question_pt'))
         print('loading questions from %s' % (question_pt_path))
-        question_type = kwargs.pop('question_type')
+        # question_type = kwargs.pop('question_type')
         with open(question_pt_path, 'rb') as f:
             obj = pickle.load(f)
             questions = obj['questions']
@@ -124,9 +171,8 @@ class AVQADataLoader(DataLoader):
             
             ans_candidates = np.zeros(4)
             ans_candidates_len = np.zeros(4)
-            # if question_type in ['action', 'transition']:
-            #     ans_candidates = obj['ans_candidates']
-            #     ans_candidates_len = obj['ans_candidates_len']
+            ans_candidates = obj['ans_candidates']
+            ans_candidates_len = obj['ans_candidates_len']
 
         if 'train_num' in kwargs:
             trained_num = kwargs.pop('train_num')
@@ -136,9 +182,8 @@ class AVQADataLoader(DataLoader):
                 video_ids = video_ids[:trained_num]
                 q_ids = q_ids[:trained_num]
                 answers = answers[:trained_num]
-                # if question_type in ['action', 'transition']:
-                #     ans_candidates = ans_candidates[:trained_num]
-                #     ans_candidates_len = ans_candidates_len[:trained_num]
+                ans_candidates = ans_candidates[:trained_num]
+                ans_candidates_len = ans_candidates_len[:trained_num]
         if 'val_num' in kwargs:
             val_num = kwargs.pop('val_num')
             if val_num > 0:
@@ -147,9 +192,8 @@ class AVQADataLoader(DataLoader):
                 video_ids = video_ids[:val_num]
                 q_ids = q_ids[:val_num]
                 answers = answers[:val_num]
-                if question_type in ['action', 'transition']:
-                    ans_candidates = ans_candidates[:val_num]
-                    ans_candidates_len = ans_candidates_len[:val_num]
+                ans_candidates = ans_candidates[:val_num]
+                ans_candidates_len = ans_candidates_len[:val_num]
         if 'test_num' in kwargs:
             test_num = kwargs.pop('test_num')
             if test_num > 0:
@@ -158,24 +202,35 @@ class AVQADataLoader(DataLoader):
                 video_ids = video_ids[:test_num]
                 q_ids = q_ids[:test_num]
                 answers = answers[:test_num]
-                if question_type in ['action', 'transition']:
-                    ans_candidates = ans_candidates[:test_num]
-                    ans_candidates_len = ans_candidates_len[:test_num]
+                ans_candidates = ans_candidates[:test_num]
+                ans_candidates_len = ans_candidates_len[:test_num]
 
         print('loading appearance feature from %s' % (kwargs['appearance_feat']))
         with h5py.File(kwargs['appearance_feat'], 'r') as app_features_file:
             app_video_ids = app_features_file['ids'][()]
-        app_feat_id_to_index = {str(id): i for i, id in enumerate(app_video_ids)}
+        
         print('loading motion feature from %s' % (kwargs['motion_feat']))
         with h5py.File(kwargs['motion_feat'], 'r') as motion_features_file:
             motion_video_ids = motion_features_file['ids'][()]
+        
+        print('loading video level audio feature from %s' % (kwargs['vl_audio_feat']))
+        with h5py.File(kwargs['vl_audio_feat'], 'r') as vlaudio_features_file:
+            vlaudio_video_ids = vlaudio_features_file['ids'][()]
+
+        app_feat_id_to_index = {str(id): i for i, id in enumerate(app_video_ids)}
         motion_feat_id_to_index = {str(id): i for i, id in enumerate(motion_video_ids)}
+        vlaudio_feat_id_to_index = {str(id): i for i, id in enumerate(vlaudio_video_ids)}
+
         self.app_feature_h5 = kwargs.pop('appearance_feat')
         self.motion_feature_h5 = kwargs.pop('motion_feat')
+        self.vlaudio_feature_h5 = kwargs.pop('vl_audio_feat')
+        self.useAudio = kwarges.pop('useAudio')
+        self.ablation = kwargs.pop('ablation')
         self.dataset = VideoQADataset(answers, ans_candidates, ans_candidates_len, questions, questions_len,
                                       video_ids, q_ids,
                                       self.app_feature_h5, app_feat_id_to_index, self.motion_feature_h5,
-                                      motion_feat_id_to_index)
+                                      motion_feat_id_to_index, self.vlaudio_feature_h5, vlaudio_feat_id_to_index, 
+                                      self.useAudio, self.ablation)
 
         self.vocab = vocab
         self.batch_size = kwargs['batch_size']
