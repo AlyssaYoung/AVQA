@@ -226,7 +226,7 @@ class AVQADataLoader(DataLoader):
         self.vlaudio_feature_h5 = kwargs.pop('vl_audio_feat')
         self.useAudio = kwarges.pop('useAudio')
         self.ablation = kwargs.pop('ablation')
-        self.dataset = VideoQADataset(answers, ans_candidates, ans_candidates_len, questions, questions_len,
+        self.dataset = AVQADataset(answers, ans_candidates, ans_candidates_len, questions, questions_len,
                                       video_ids, q_ids,
                                       self.app_feature_h5, app_feat_id_to_index, self.motion_feature_h5,
                                       motion_feat_id_to_index, self.vlaudio_feature_h5, vlaudio_feat_id_to_index, 

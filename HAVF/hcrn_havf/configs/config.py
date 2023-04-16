@@ -37,8 +37,6 @@ __C.train.appearance_flag = True
 __C.train.motion_flag = True
 __C.train.question_flag = True
 __C.train.answer_flag = True
-__C.train.writer_file = '../runs/'
-__C.train.fuse_type = 'query'
 __C.train = dict(__C.train)
 
 # validation
@@ -53,11 +51,12 @@ __C.test.write_preds = False
 __C.test = dict(__C.test)
 # dataset options
 __C.dataset = edict()
-__C.dataset.name = 'tgif-qa' # ['tgif-qa', 'msrvtt-qa', 'msvd-qa']
+__C.dataset.name = 'avqa' # ['tgif-qa', 'msrvtt-qa', 'msvd-qa']
 __C.dataset.question_type = 'none' #['frameqa', 'count', 'transition', 'action', 'none']
 __C.dataset.data_dir = ''
 __C.dataset.appearance_feat = '{}_{}_appearance_feat.h5'
 __C.dataset.motion_feat = '{}_{}_motion_feat.h5'
+__C.dataset.vl_audio_feat = '{}_{}_vlaudio_feat.h5'
 __C.dataset.vocab_json = '{}_{}_vocab.json'
 __C.dataset.train_question_pt = '{}_{}_train_questions.pt'
 __C.dataset.val_question_pt = '{}_{}_val_questions.pt'

@@ -15,3 +15,7 @@ To evaluate the trained model, run the following:
 ```bash
 python validate.py --cfg configs/avqa.yml
 ```
+#### Training without audio inputs
+```bash
+python train.py --cfg configs/avqa_wo_audio.yml
+```

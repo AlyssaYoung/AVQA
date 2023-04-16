@@ -74,6 +74,7 @@ def train(cfg):
         'spl_resolution': cfg.train.spl_resolution,
         'vocab': train_loader.vocab,
         'question_type': cfg.dataset.question_type,
+        'useAudio': cfg.useAudio,
         'level': cfg.level,
         'crn_type': cfg.fuse_type
     }

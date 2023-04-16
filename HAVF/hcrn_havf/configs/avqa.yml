@@ -2,7 +2,10 @@ gpu_id: 6
 multi_gpus: False
 num_workers: 4
 seed: 666
-exp_name: 'hcrn_havf_exp'
+exp_name: 'hcrn_havf_exp_middle_vcrn'
+level: 'middle-vcrn'
+fuse_type: 'concat'
+useAudio: True
 
 train:
   lr: 0.0001
@@ -27,7 +30,7 @@ test:
 
 dataset:
   name: 'avqa'
-  question_type: 'action'
+  question_type: 'none'
   data_dir: 'data/feats'
-  save_dir: 'out/hcrn_havf_exp'
+  save_dir: 'out/hcrn_havf_exp_middle_vcrn'
   ans_count: 4
