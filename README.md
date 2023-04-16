@@ -11,10 +11,8 @@ AVQA is an audio-visual question answering dataset for the multimodal understand
 We collect 57,015 videos from daily audio-visual activities and 57,335 specially-designed question-answer pairs relying on clues from both audio and visual modalities. More Detailed information listed on the [Dataset Website](https://mn.cs.tsinghua.edu.cn/avqa).
 ## Description
 ### Repo directories
-- ./configs: config files;
 - ./data: data dictionary;
 - ./preprocess: code and scripts for data preprocessing and feature extraction;
-- ./backbones: six backbone models -- PSAC, HME, LADNet, ACRTransformer, HGA, HCRN;
 - ./HAVF: our proposed HAVF model to reproduce the results;
 - ./runs: the default output dictionary used to store our trained model and result files;
 - ./scripts: all training and evaluating scripts;
@@ -83,23 +81,6 @@ Finally, the feature dimensions of extracted features are as follows:
 
 Note: You can also develop data preprocessing and feature extraction methods in your own original and innonative ways. Here we just provide a possible way to utilize the audio and visual data :)
 
-### Backbone models
-1. PSAC
-2. HME
-3. LADNet
-4. ACRTransformer
-5. HGA
-6. HCRN
-
-    Training.
-    ```
-    python xxx.py --mode train
-    ```
-    Testing.
-    ```
-    python xxx.py --mode test
-    ```
-
 ### Our proposed HAVF
 1. PSAC+HAVF
 2. HME+HAVF
@@ -107,7 +88,7 @@ Note: You can also develop data preprocessing and feature extraction methods in 
 4. ACRTransformer+HAVF
 5. HGA+HAVF
 6. HCRN+HAVF
-
+training w/o audio; training with early branch; training with middle branch; training with late branch.
     Training.
     ```
     python xxx.py --mode train
@@ -126,6 +107,7 @@ Note: You can also develop data preprocessing and feature extraction methods in 
 - Pip
 
 ## Notice
+To improve the code readability, we have recently rebuilded our code. You may encounter some bugs or find performance difference compared with the results reported in the paper. Please feel free to contact us if you have any questions or suggestions. Both [issues](https://github.com/AlyssaYoung/AVQA/issues) and emails(pinci_yang@outlook.com) are available.
 
 ## Citation
 If you find our paper or code useful, please cite our paper using the following bibtex:
@@ -142,3 +124,10 @@ If you find our paper or code useful, please cite our paper using the following 
 ## Acknowledgement
 - As for audio feature extraction, we adapt PANNs from this [repo](https://github.com/qiuqiangkong/audioset_tagging_cnn) to our code. Thank @qiuqiangkong for releasing the code and the pretrained models.
 - We refer to this [repo](https://github.com/thaolmk54/hcrn-videoqa) to preprocess visual frames and extract appearance and motion features. Thank @thaolmk54 for this excellent work.
+- In this work, we conduct our experiments based on six video-qa backbone models. Here we list the original repositories:
+    - [PSAC](https://github.com/lixiangpengcs/PSAC) @lixiangpengcs
+    - [HME](https://github.com/fanchenyou/HME-VideoQA) @fanchenyou
+    - [LADNet](https://github.com/lixiangpengcs/LAD-Net-for-VideoQA) @lixiangpengcs
+    - [ACRTransformer](https://github.com/op-multimodal/ACRTransformer/)
+    - [HGA](https://github.com/Jumpin2/HGA) @Jumpin2
+    - [HCRN](https://github.com/thaolmk54/hcrn-videoqa) @thaolmk54
