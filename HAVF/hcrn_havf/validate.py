@@ -68,64 +68,42 @@ def validate(cfg, model, data, device, write_preds=False):
                 else:
                     raise ValueError('unseen value in question categories?')
         
-            if cfg.dataset.question_type in ['action', 'transition']:
-                preds = torch.argmax(logits.view(batch_size, cfg.dataset.ans_count), dim=1)
-                agreeings = (preds == answers)
+            preds = torch.argmax(logits.view(batch_size, cfg.dataset.ans_count), dim=1)
+            agreeings = (preds == answers)
 
-            elif cfg.dataset.question_type == 'count':
-                answers = answers.unsqueeze(-1)
-                preds = (logits + 0.5).long().clamp(min=1, max=10)
-                batch_mse = (preds - answers) ** 2
-            else:
-                logits = F.softmax(logits, dim=-1)
-                #logits = logits * masks
-                preds = logits.detach().argmax(1)
-                agreeings = (preds == answers)
             if write_preds:
-                if cfg.dataset.question_type not in ['action', 'transition', 'count']:
-                    preds = logits.argmax(1)
-                if cfg.dataset.question_type in ['action', 'transition']:
-                    answer_vocab = data.vocab['question_answer_idx_to_token']
-                else:
-                    answer_vocab = data.vocab['answer_idx_to_token']
+                preds = logits.argmax(1)
+                answer_vocab = data.vocab['question_answer_idx_to_token']
                 for predict in preds:
-                    if cfg.dataset.question_type in ['count', 'transition', 'action']:
-                        all_preds.append(predict.item())
-                    else:
-                        all_preds.append(answer_vocab[predict.item()])
+                    all_preds.append(predict.item())
+                    
                 for gt in answers:
-                    if cfg.dataset.question_type in ['count', 'transition', 'action']:
-                        gts.append(gt.item())
-                    else:
-                        gts.append(answer_vocab[gt.item()])
+                    gts.append(gt.item())
+                    
                 for id in video_ids:
                     v_ids.append(id.cpu().numpy())
                 for ques_id in question_ids:
                     q_ids.append(ques_id.cpu().numpy())
 
-            if cfg.dataset.question_type == 'count':
-                total_acc += batch_mse.float().sum().item()
-                count += answers.size(0)
-            else:
-                total_acc += agreeings.float().sum().item()
-                count += answers.size(0)
+            total_acc += agreeings.float().sum().item()
+            count += answers.size(0)
 
-                which_acc += agreeings.float()[which_idx].sum().item() if which_idx != [] else 0
-                comefrom_acc += agreeings.float()[comefrom_idx].sum().item() if comefrom_idx != [] else 0
-                happening_acc += agreeings.float()[happening_idx].sum().item() if happening_idx != [] else 0
-                where_acc += agreeings.float()[where_idx].sum().item() if where_idx != [] else 0
-                why_acc += agreeings.float()[why_idx].sum().item() if why_idx != [] else 0
-                beforenext_acc += agreeings.float()[beforenext_idx].sum().item() if beforenext_idx != [] else 0
-                when_acc += agreeings.float()[when_idx].sum().item() if when_idx != [] else 0
-                usedfor_acc += agreeings.float()[usedfor_idx].sum().item() if usedfor_idx != [] else 0
-                which_count += len(which_idx)
-                comefrom_count += len(comefrom_idx)
-                happening_count += len(happening_idx)
-                where_count += len(where_idx)
-                why_count += len(why_idx)
-                beforenext_count += len(beforenext_idx)
-                when_count += len(when_idx)
-                usedfor_count += len(usedfor_idx)
+            which_acc += agreeings.float()[which_idx].sum().item() if which_idx != [] else 0
+            comefrom_acc += agreeings.float()[comefrom_idx].sum().item() if comefrom_idx != [] else 0
+            happening_acc += agreeings.float()[happening_idx].sum().item() if happening_idx != [] else 0
+            where_acc += agreeings.float()[where_idx].sum().item() if where_idx != [] else 0
+            why_acc += agreeings.float()[why_idx].sum().item() if why_idx != [] else 0
+            beforenext_acc += agreeings.float()[beforenext_idx].sum().item() if beforenext_idx != [] else 0
+            when_acc += agreeings.float()[when_idx].sum().item() if when_idx != [] else 0
+            usedfor_acc += agreeings.float()[usedfor_idx].sum().item() if usedfor_idx != [] else 0
+            which_count += len(which_idx)
+            comefrom_count += len(comefrom_idx)
+            happening_count += len(happening_idx)
+            where_count += len(where_idx)
+            why_count += len(why_idx)
+            beforenext_count += len(beforenext_idx)
+            when_count += len(when_idx)
+            usedfor_count += len(usedfor_idx)
 
 
         acc = total_acc / count
@@ -146,7 +124,7 @@ def validate(cfg, model, data, device, write_preds=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cfg', dest='cfg_file', help='optional config file', default='tgif_qa_action.yml', type=str)
+    parser.add_argument('--cfg', dest='cfg_file', help='optional config file', default='avqa.yml', type=str)
     parser.add_argument('--app_feat', default='resnet101', type=str)
     parser.add_argument('--motion_feat', default='resnext101', type=str)
     parser.add_argument('--audio_feat', default='PANNs', type=str)
@@ -154,8 +132,6 @@ if __name__ == '__main__':
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
 
-    # assert cfg.dataset.name in ['tgif-qa', 'msrvtt-qa', 'msvd-qa']
-    # assert cfg.dataset.question_type in ['frameqa', 'count', 'transition', 'action', 'none']
     # check if the data folder exists
     assert os.path.exists(cfg.dataset.data_dir)
 
@@ -214,71 +190,42 @@ if __name__ == '__main__':
         else:
             assert os.path.isdir(output_dir)
         preds_file = os.path.join(output_dir, "test_preds.json")
+        
+        # Find groundtruth questions and corresponding answer candidates
+        vocab = test_loader.vocab['question_answer_idx_to_token']
+        dict = {}
+        with open(cfg.dataset.test_question_pt, 'rb') as f:
+            obj = pickle.load(f)
+            questions = obj['questions']
+            org_v_ids = obj['video_ids']
+            org_v_names = obj['video_names']
+            org_q_ids = obj['question_id']
+            ans_candidates = obj['ans_candidates']
 
-        if cfg.dataset.question_type in ['action', 'transition']: \
-                # Find groundtruth questions and corresponding answer candidates
-            vocab = test_loader.vocab['question_answer_idx_to_token']
-            dict = {}
-            with open(cfg.dataset.test_question_pt, 'rb') as f:
-                obj = pickle.load(f)
-                questions = obj['questions']
-                org_v_ids = obj['video_ids']
-                org_v_names = obj['video_names']
-                org_q_ids = obj['question_id']
-                ans_candidates = obj['ans_candidates']
+        for idx in range(len(org_q_ids)):
+            dict[str(org_q_ids[idx])] = [org_v_names[idx], org_v_ids[idx], org_q_ids[idx], questions[idx], ans_candidates[idx]]
 
-            for idx in range(len(org_q_ids)):
-                dict[str(org_q_ids[idx])] = [org_v_names[idx], org_v_ids[idx], org_q_ids[idx], questions[idx], ans_candidates[idx]]
-
-            instances = []
-            for video_id, q_id, answer, pred in zip(np.hstack(v_ids).tolist(), np.hstack(q_ids).tolist(), gts, preds):
-                if answer != pred:
-                    instances.append({'question_id': dict[str(q_id)][2], 'video_name': dict[str(q_id)][0],
-                                    'answer': answer, 'prediction': pred})
-            # write preditions to json file
-            with open(preds_file, 'w') as f:
-                json.dump(instances, f)
-            sys.stdout.write('Display 10 samples...\n')
-            # Display 10 samples
-            # for idx in range(10):
-            #     print('Video name: {}'.format(dict[str(q_ids[idx].item())][0]))
-            #     cur_question = [vocab[word.item()] for word in dict[str(q_ids[idx].item())][1] if word != 0]
-            #     print('Question: ' + ' '.join(cur_question) + '?')
-            #     all_answer_cands = dict[str(q_ids[idx].item())][2]
-            #     for cand_id in range(len(all_answer_cands)):
-            #         cur_answer_cands = [vocab[word.item()] for word in all_answer_cands[cand_id] if word
-            #                             != 0]
-            #         print('({}): '.format(cand_id) + ' '.join(cur_answer_cands))
-            #     print('Prediction: {}'.format(preds[idx]))
-            #     print('Groundtruth: {}'.format(gts[idx]))
-        else:
-            vocab = test_loader.vocab['question_idx_to_token']
-            dict = {}
-            with open(cfg.dataset.test_question_pt, 'rb') as f:
-                obj = pickle.load(f)
-                questions = obj['questions']
-                org_v_ids = obj['video_ids']
-                org_v_names = obj['video_names']
-                org_q_ids = obj['question_id']
-
-            for idx in range(len(org_q_ids)):
-                dict[str(org_q_ids[idx])] = [org_v_names[idx], questions[idx]]
-            instances = [
-                {'video_id': video_id, 'question_id': q_id, 'video_name': str(dict[str(q_id)][0]), 'question': [vocab[word.item()] for word in dict[str(q_id)][1] if word != 0],
-                 'answer': answer,
-                 'prediction': pred} for video_id, q_id, answer, pred in
-                zip(np.hstack(v_ids).tolist(), np.hstack(q_ids).tolist(), gts, preds)]
-            # write preditions to json file
-            with open(preds_file, 'w') as f:
-                json.dump(instances, f)
-            sys.stdout.write('Display 10 samples...\n')
-            # Display 10 examples
-            for idx in range(10):
-                print('Video name: {}'.format(dict[str(q_ids[idx].item())][0]))
-                cur_question = [vocab[word.item()] for word in dict[str(q_ids[idx].item())][1] if word != 0]
-                print('Question: ' + ' '.join(cur_question) + '?')
-                print('Prediction: {}'.format(preds[idx]))
-                print('Groundtruth: {}'.format(gts[idx]))
+        instances = []
+        for video_id, q_id, answer, pred in zip(np.hstack(v_ids).tolist(), np.hstack(q_ids).tolist(), gts, preds):
+            if answer != pred:
+                instances.append({'question_id': dict[str(q_id)][2], 'video_name': dict[str(q_id)][0],
+                                'answer': answer, 'prediction': pred})
+        # write preditions to json file
+        with open(preds_file, 'w') as f:
+            json.dump(instances, f)
+        sys.stdout.write('Display 10 samples...\n')
+        # Display 10 samples
+        # for idx in range(10):
+        #     print('Video name: {}'.format(dict[str(q_ids[idx].item())][0]))
+        #     cur_question = [vocab[word.item()] for word in dict[str(q_ids[idx].item())][1] if word != 0]
+        #     print('Question: ' + ' '.join(cur_question) + '?')
+        #     all_answer_cands = dict[str(q_ids[idx].item())][2]
+        #     for cand_id in range(len(all_answer_cands)):
+        #         cur_answer_cands = [vocab[word.item()] for word in all_answer_cands[cand_id] if word
+        #                             != 0]
+        #         print('({}): '.format(cand_id) + ' '.join(cur_answer_cands))
+        #     print('Prediction: {}'.format(preds[idx]))
+        #     print('Groundtruth: {}'.format(gts[idx]))
     else:
         acc = validate(cfg, model, test_loader, device, cfg.test.write_preds)
         sys.stdout.write('~~~~~~ Test Accuracy: {test_acc} ~~~~~~~\n'.format(
