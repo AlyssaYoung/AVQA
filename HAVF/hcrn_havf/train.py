@@ -74,7 +74,8 @@ def train(cfg):
         'spl_resolution': cfg.train.spl_resolution,
         'vocab': train_loader.vocab,
         'question_type': cfg.dataset.question_type,
-        'level': cfg.level
+        'level': cfg.level,
+        'crn_type': cfg.fuse_type
     }
     model_kwargs_tosave = {k: v for k, v in model_kwargs.items() if k != 'vocab'}
     model = HCRN.HCRNNetwork(**model_kwargs).to(device)

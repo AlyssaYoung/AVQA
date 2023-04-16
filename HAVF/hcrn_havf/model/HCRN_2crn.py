@@ -100,7 +100,7 @@ class InputUnitAudio(nn.Module):
         return h_feat
 
 class InputUnitVisual(nn.Module):
-    def __init__(self, k_max_frame_level, k_max_clip_level, spl_resolution, vision_dim, audio_dim, module_dim=512, crn_type='concat', level='middle'):
+    def __init__(self, k_max_frame_level, k_max_clip_level, spl_resolution, vision_dim, audio_dim, module_dim=512, level='middle-vcrn', crn_type='concat'):
         super(InputUnitVisual, self).__init__()
 
         self.crn_type = crn_type
@@ -120,7 +120,7 @@ class InputUnitVisual(nn.Module):
         else:
             self.appearance_feat_proj = nn.Linear(vision_dim, module_dim)
             self.audio_feat_proj = nn.Linear(audio_dim, module_dim)
-            self.clip_level_audio_cond = CRN(module_dim, k_max_frame_level, k_max_frame_level, gating=False, spl_resolution=spl_resolution, level=self.crn_type)
+            self.clip_level_audio_cond = CRN(module_dim, k_max_frame_level, k_max_frame_level, gating=False, spl_resolution=spl_resolution, fuse_type=self.crn_type)
 
         self.question_embedding_proj = nn.Linear(module_dim, module_dim)
         
@@ -143,7 +143,7 @@ class InputUnitVisual(nn.Module):
         question_embedding_proj = self.question_embedding_proj(question_embedding)
         video_level_audio_feat_proj = self.audio_feat_proj(vl_audio_feat) # (bz, 512)
         
-        if self.level == 'middle':
+        if self.level in ['middle-vcrn', 'middle-ccrn', 'middle-2crn']:
             audio_embedding_proj = self.audio_feat_proj(vl_audio_feat)
 
         for i in range(appearance_video_feat.size(1)):
@@ -161,7 +161,7 @@ class InputUnitVisual(nn.Module):
             clip_level_crn_motion = self.clip_level_motion_cond(torch.unbind(clip_level_appearance_proj, dim=1),
                                                                 clip_level_motion_proj) # [14], (bz, 512)
             # print('clip_level_crn_motion shape:', len(clip_level_crn_motion), clip_level_crn_motion[0].shape) #[12], (bz, 512)
-            if self.level == 'middle'  and self.crn_type in ['concat', 'mul']:
+            if self.level in ['middle-ccrn', 'middle-2crn']:
                 clip_level_crn_audio = self.clip_level_audio_cond(clip_level_crn_motion, audio_embedding_proj)
                 clip_level_crn_question = self.clip_level_question_cond(clip_level_crn_audio, question_embedding_proj)
             else:
@@ -183,11 +183,17 @@ class InputUnitVisual(nn.Module):
         # video_level_crn_question = self.video_level_question_cond(video_level_crn_motion, question_embedding_proj.unsqueeze(1))
         # print('video_level_crn_motion shape:', len(video_level_crn_motion), video_level_crn_motion[0].shape)
 
-        video_level_crn_audio = self.video_level_audio_cond(video_level_crn_motion, video_level_audio_feat_proj.unsqueeze(1)) # [5], (bz, 12, 512)
-        # print('video_level_crn_audio shape:', len(video_level_crn_audio), video_level_crn_audio[0].shape)
-        video_level_crn_question = self.video_level_question_cond(video_level_crn_audio,
+        if self.level in ['middle-vcrn', 'middle-2crn']:
+            video_level_crn_audio = self.video_level_audio_cond(video_level_crn_motion, video_level_audio_feat_proj.unsqueeze(1)) # [5], (bz, 12, 512)
+            # print('video_level_crn_audio shape:', len(video_level_crn_audio), video_level_crn_audio[0].shape)
+            video_level_crn_question = self.video_level_question_cond(video_level_crn_audio,
+                                                                    question_embedding_proj.unsqueeze(1)) #[4], (bz, 12, 512)
+            # print('video_level_crn_question shape:', len(video_level_crn_question), video_level_crn_question[0].shape)
+        else:
+            video_level_crn_question = self.video_level_question_cond(video_level_crn_motion,
                                                                   question_embedding_proj.unsqueeze(1)) #[4], (bz, 12, 512)
-        # print('video_level_crn_question shape:', len(video_level_crn_question), video_level_crn_question[0].shape)
+            # print('video_level_crn_question shape:', len(video_level_crn_question), video_level_crn_question[0].shape)
+
         video_level_crn_output = torch.cat([clip_relation.unsqueeze(1) for clip_relation in video_level_crn_question],
                                            dim=1)
         video_level_crn_output = video_level_crn_output.view(batch_size, -1, self.module_dim) # (bz, 48, 512)
@@ -265,11 +271,12 @@ class OutputUnitCount(nn.Module):
 
 
 class HCRNNetwork(nn.Module):
-    def __init__(self, vision_dim, audio_dim, module_dim, word_dim, k_max_frame_level, k_max_clip_level, spl_resolution, vocab, question_type, level='middle'):
+    def __init__(self, vision_dim, audio_dim, module_dim, word_dim, k_max_frame_level, k_max_clip_level, spl_resolution, vocab, question_type, level='middle-vcrn', crn_type='concat'):
         super(HCRNNetwork, self).__init__()
 
         self.question_type = question_type
         self.level = level
+        self.crn_type = crn_type
         self.feature_aggregation = FeatureAggregation(module_dim)
 
         encoder_vocab_size = len(vocab['question_answer_token_to_idx'])
@@ -278,12 +285,9 @@ class HCRNNetwork(nn.Module):
         self.audio_input_unit = InputUnitAudio(audio_dim=audio_dim, module_dim=module_dim)
         self.output_unit = OutputUnitMultiChoices(module_dim=module_dim)
 
-        if self.level == 'early':
-            self.visual_input_unit = InputUnitVisual(k_max_frame_level=k_max_frame_level, k_max_clip_level=k_max_clip_level, spl_resolution=spl_resolution, vision_dim=vision_dim, audio_dim=audio_dim, module_dim=module_dim, crn_type='concat', level=level)
-        elif self.level == 'middle':
-            self.visual_input_unit = InputUnitVisual(k_max_frame_level=k_max_frame_level, k_max_clip_level=k_max_clip_level, spl_resolution=spl_resolution, vision_dim=vision_dim, audio_dim=audio_dim, module_dim=module_dim, crn_type='concat', level=level)
-        elif self.level == 'late':
-            self.visual_input_unit = InputUnitVisual(k_max_frame_level=k_max_frame_level, k_max_clip_level=k_max_clip_level, spl_resolution=spl_resolution, vision_dim=vision_dim, audio_dim=audio_dim, module_dim=module_dim, crn_type='concat', level=level)
+       
+        self.visual_input_unit = InputUnitVisual(k_max_frame_level=k_max_frame_level, k_max_clip_level=k_max_clip_level, spl_resolution=spl_resolution, vision_dim=vision_dim, audio_dim=audio_dim, module_dim=module_dim, level=level, crn_type=crn_type)
+        if self.level == 'late':
             self.av_latefusion = AVLateFusion(module_dim=module_dim)
 
         init_modules(self.modules(), w_init="xavier_uniform")
@@ -304,16 +308,6 @@ class HCRNNetwork(nn.Module):
             logits.
         """
         batch_size = question.size(0)
-            # get image, word, and sentence embeddings
-            question_embedding = self.linguistic_input_unit(question, question_len)
-            visual_embedding = self.visual_input_unit(video_appearance_feat, video_motion_feat, vl_audio_feat, question_embedding)
-            audio_embedding = self.audio_input_unit(vl_audio_feat, question_embedding)
-            if self.level == 'late':
-                visual_embedding = self.av_latefusion(audio_embedding, visual_embedding)
-
-            visual_embedding = self.feature_aggregation(question_embedding, visual_embedding)
-
-            out = self.output_unit(question_embedding, visual_embedding)
         
         question_embedding = self.linguistic_input_unit(question, question_len)
         visual_embedding = self.visual_input_unit(video_appearance_feat, video_motion_feat, vl_audio_feat, question_embedding)
