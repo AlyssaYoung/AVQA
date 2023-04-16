@@ -87,16 +87,7 @@ Note: You can also develop data preprocessing and feature extraction methods in 
 3. LADNet+HAVF
 4. ACRTransformer+HAVF
 5. HGA+HAVF
-6. HCRN+HAVF
-training w/o audio; training with early branch; training with middle branch; training with late branch.
-    Training.
-    ```
-    python xxx.py --mode train
-    ```
-    Testing.
-    ```
-    python xxx.py --mode test
-    ```
+6. HCRN+HAVF: Please refer to [HAVF/hcrn_havf/README.md](https://github.com/AlyssaYoung/AVQA/tree/main/HAVF/hcrn_havf).
 ## Results
 <div align="center">
 <img src=pics/results.png width=95% />
