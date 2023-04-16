@@ -1,0 +1,35 @@
+gpu_id: 7
+multi_gpus: False
+num_workers: 4
+seed: 666
+exp_name: 'VGGSound-QA'
+useAudio: False
+
+train:
+  lr: 0.0001
+  batch_size: 32
+  restore: False
+  max_epochs: 50
+  vision_dim: 2048
+  audio_dim: 2048
+  word_dim: 300
+  module_dim: 512
+  glove: True
+  k_max_frame_level: 16
+  k_max_clip_level: 8
+  spl_resolution: 1
+
+val:
+  flag: True
+
+test:
+  test_num: 0
+  write_preds: True
+
+dataset:
+  name: 'vggsound-qa'
+  question_type: 'action'
+  data_dir: '/DATA/DATANAS1/hrz/videoqa/hcrn-vggsound/data/vggsound-qa'
+  # save_dir: '/DATA/DATANAS1/yangpinci/VGGSound_QA/hcrn-block/exp4_hcrn_without-audio/'
+  save_dir: '/DATA/DATANAS1/yangpinci/VGGSound_QA/cal-param-flop/hcrn/flop_baseline_0610/'
+  ans_count: 4

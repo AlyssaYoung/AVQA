@@ -1,0 +1,1 @@
+python train.py --cfg configs/vggsound_qa_withoutaudio.yml
