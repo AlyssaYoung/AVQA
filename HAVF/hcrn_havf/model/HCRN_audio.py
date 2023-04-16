@@ -100,12 +100,13 @@ class InputUnitAudio(nn.Module):
         return h_feat
 
 class InputUnitVisual(nn.Module):
-    def __init__(self, k_max_frame_level, k_max_clip_level, spl_resolution, vision_dim, audio_dim, module_dim=512, level='middle-vcrn', crn_type='concat'):
+    def __init__(self, k_max_frame_level, k_max_clip_level, spl_resolution, vision_dim, audio_dim, module_dim=512, useAudio=True, level='middle-vcrn', crn_type='concat'):
         super(InputUnitVisual, self).__init__()
 
+        self.useAudio = useAudio
         self.crn_type = crn_type
         self.level = level
-
+        
         self.clip_level_motion_cond = CRN(module_dim, k_max_frame_level, k_max_frame_level, gating=False, spl_resolution=spl_resolution)
         self.clip_level_question_cond = CRN(module_dim, k_max_frame_level-2, k_max_frame_level-2, gating=True, spl_resolution=spl_resolution)
         self.video_level_motion_cond = CRN(module_dim, k_max_clip_level, k_max_clip_level, gating=False, spl_resolution=spl_resolution)
@@ -141,63 +142,96 @@ class InputUnitVisual(nn.Module):
         batch_size = appearance_video_feat.size(0)
         clip_level_crn_outputs = []
         question_embedding_proj = self.question_embedding_proj(question_embedding)
-        video_level_audio_feat_proj = self.audio_feat_proj(vl_audio_feat) # (bz, 512)
         
-        if self.level in ['middle-vcrn', 'middle-ccrn', 'middle-2crn']:
-            audio_embedding_proj = self.audio_feat_proj(vl_audio_feat)
+        if self.useAudio:
+            video_level_audio_feat_proj = self.audio_feat_proj(vl_audio_feat) # (bz, 512)
+            
+            if self.level in ['middle-vcrn', 'middle-ccrn', 'middle-2crn']:
+                audio_embedding_proj = self.audio_feat_proj(vl_audio_feat)
 
-        for i in range(appearance_video_feat.size(1)):
-            clip_level_motion = motion_video_feat[:, i, :]  # (bz, 2048)
-            clip_level_motion_proj = self.clip_level_motion_proj(clip_level_motion)
+            for i in range(appearance_video_feat.size(1)):
+                clip_level_motion = motion_video_feat[:, i, :]  # (bz, 2048)
+                clip_level_motion_proj = self.clip_level_motion_proj(clip_level_motion)
 
-            if self.level == 'early':
-                vl_audio_feat_repeat = vl_audio_feat.unsqueeze(1)
-                vl_audio_feat_repeat = vl_audio_feat_repeat.repeat(1, appearance_video_feat.size(2), 1)
-                clip_level_appearance = torch.cat((appearance_video_feat[:, i, :, :], vl_audio_feat_repeat), dim=-1) # (bz, 16, 4096)
+                if self.level == 'early':
+                    vl_audio_feat_repeat = vl_audio_feat.unsqueeze(1)
+                    vl_audio_feat_repeat = vl_audio_feat_repeat.repeat(1, appearance_video_feat.size(2), 1)
+                    clip_level_appearance = torch.cat((appearance_video_feat[:, i, :, :], vl_audio_feat_repeat), dim=-1) # (bz, 16, 4096)
+                else:
+                    clip_level_appearance = appearance_video_feat[:, i, :, :]  # (bz, 16, 2048)
+                clip_level_appearance_proj = self.appearance_feat_proj(clip_level_appearance)  # (bz, 16, 512)
+                # clip level CRNs
+                clip_level_crn_motion = self.clip_level_motion_cond(torch.unbind(clip_level_appearance_proj, dim=1),
+                                                                    clip_level_motion_proj) # [14], (bz, 512)
+                # print('clip_level_crn_motion shape:', len(clip_level_crn_motion), clip_level_crn_motion[0].shape) #[12], (bz, 512)
+                if self.level in ['middle-ccrn', 'middle-2crn']:
+                    clip_level_crn_audio = self.clip_level_audio_cond(clip_level_crn_motion, audio_embedding_proj)
+                    clip_level_crn_question = self.clip_level_question_cond(clip_level_crn_audio, question_embedding_proj)
+                else:
+                    clip_level_crn_question = self.clip_level_question_cond(clip_level_crn_motion, question_embedding_proj)
+                # print('clip_level_crn_question shape:', len(clip_level_crn_question), clip_level_crn_question[0].shape)
+                clip_level_crn_output = torch.cat(
+                    [frame_relation.unsqueeze(1) for frame_relation in clip_level_crn_question],
+                    dim=1)
+                clip_level_crn_output = clip_level_crn_output.view(batch_size, -1, self.module_dim) #(bz, 12, 512)
+                # print('clip_level_crn_output shape:', clip_level_crn_output.shape)
+                clip_level_crn_outputs.append(clip_level_crn_output)
+            
+            # Encode video level motion
+            _, (video_level_motion, _) = self.sequence_encoder(motion_video_feat)
+            video_level_motion = video_level_motion.transpose(0, 1)
+            video_level_motion_feat_proj = self.video_level_motion_proj(video_level_motion)
+            # video level CRNs
+            video_level_crn_motion = self.video_level_motion_cond(clip_level_crn_outputs, video_level_motion_feat_proj) # [6], (bz, 12, 512)
+            # video_level_crn_question = self.video_level_question_cond(video_level_crn_motion, question_embedding_proj.unsqueeze(1))
+            # print('video_level_crn_motion shape:', len(video_level_crn_motion), video_level_crn_motion[0].shape)
+
+            if self.level in ['middle-vcrn', 'middle-2crn']:
+                video_level_crn_audio = self.video_level_audio_cond(video_level_crn_motion, video_level_audio_feat_proj.unsqueeze(1)) # [5], (bz, 12, 512)
+                # print('video_level_crn_audio shape:', len(video_level_crn_audio), video_level_crn_audio[0].shape)
+                video_level_crn_question = self.video_level_question_cond(video_level_crn_audio,
+                                                                        question_embedding_proj.unsqueeze(1)) #[4], (bz, 12, 512)
+                # print('video_level_crn_question shape:', len(video_level_crn_question), video_level_crn_question[0].shape)
             else:
-                clip_level_appearance = appearance_video_feat[:, i, :, :]  # (bz, 16, 2048)
-            clip_level_appearance_proj = self.appearance_feat_proj(clip_level_appearance)  # (bz, 16, 512)
-            # clip level CRNs
-            clip_level_crn_motion = self.clip_level_motion_cond(torch.unbind(clip_level_appearance_proj, dim=1),
-                                                                clip_level_motion_proj) # [14], (bz, 512)
-            # print('clip_level_crn_motion shape:', len(clip_level_crn_motion), clip_level_crn_motion[0].shape) #[12], (bz, 512)
-            if self.level in ['middle-ccrn', 'middle-2crn']:
-                clip_level_crn_audio = self.clip_level_audio_cond(clip_level_crn_motion, audio_embedding_proj)
-                clip_level_crn_question = self.clip_level_question_cond(clip_level_crn_audio, question_embedding_proj)
-            else:
-                clip_level_crn_question = self.clip_level_question_cond(clip_level_crn_motion, question_embedding_proj)
-            # print('clip_level_crn_question shape:', len(clip_level_crn_question), clip_level_crn_question[0].shape)
-            clip_level_crn_output = torch.cat(
-                [frame_relation.unsqueeze(1) for frame_relation in clip_level_crn_question],
-                dim=1)
-            clip_level_crn_output = clip_level_crn_output.view(batch_size, -1, self.module_dim) #(bz, 12, 512)
-            # print('clip_level_crn_output shape:', clip_level_crn_output.shape)
-            clip_level_crn_outputs.append(clip_level_crn_output)
-        
-        # Encode video level motion
-        _, (video_level_motion, _) = self.sequence_encoder(motion_video_feat)
-        video_level_motion = video_level_motion.transpose(0, 1)
-        video_level_motion_feat_proj = self.video_level_motion_proj(video_level_motion)
-        # video level CRNs
-        video_level_crn_motion = self.video_level_motion_cond(clip_level_crn_outputs, video_level_motion_feat_proj) # [6], (bz, 12, 512)
-        # video_level_crn_question = self.video_level_question_cond(video_level_crn_motion, question_embedding_proj.unsqueeze(1))
-        # print('video_level_crn_motion shape:', len(video_level_crn_motion), video_level_crn_motion[0].shape)
-
-        if self.level in ['middle-vcrn', 'middle-2crn']:
-            video_level_crn_audio = self.video_level_audio_cond(video_level_crn_motion, video_level_audio_feat_proj.unsqueeze(1)) # [5], (bz, 12, 512)
-            # print('video_level_crn_audio shape:', len(video_level_crn_audio), video_level_crn_audio[0].shape)
-            video_level_crn_question = self.video_level_question_cond(video_level_crn_audio,
+                video_level_crn_question = self.video_level_question_cond(video_level_crn_motion,
                                                                     question_embedding_proj.unsqueeze(1)) #[4], (bz, 12, 512)
-            # print('video_level_crn_question shape:', len(video_level_crn_question), video_level_crn_question[0].shape)
-        else:
-            video_level_crn_question = self.video_level_question_cond(video_level_crn_motion,
-                                                                  question_embedding_proj.unsqueeze(1)) #[4], (bz, 12, 512)
-            # print('video_level_crn_question shape:', len(video_level_crn_question), video_level_crn_question[0].shape)
+                # print('video_level_crn_question shape:', len(video_level_crn_question), video_level_crn_question[0].shape)
 
-        video_level_crn_output = torch.cat([clip_relation.unsqueeze(1) for clip_relation in video_level_crn_question],
-                                           dim=1)
-        video_level_crn_output = video_level_crn_output.view(batch_size, -1, self.module_dim) # (bz, 48, 512)
-        # print('video_level_crn_output shape:', video_level_crn_output.shape)
+            video_level_crn_output = torch.cat([clip_relation.unsqueeze(1) for clip_relation in video_level_crn_question],
+                                            dim=1)
+            video_level_crn_output = video_level_crn_output.view(batch_size, -1, self.module_dim) # (bz, 48, 512)
+            # print('video_level_crn_output shape:', video_level_crn_output.shape)
+
+        else:
+            for i in range(appearance_video_feat.size(1)):
+                clip_level_motion = motion_video_feat[:, i, :]  # (bz, 2048)
+                clip_level_motion_proj = self.clip_level_motion_proj(clip_level_motion)
+
+                clip_level_appearance = appearance_video_feat[:, i, :, :]  # (bz, 16, 2048)
+                clip_level_appearance_proj = self.appearance_feat_proj(clip_level_appearance)  # (bz, 16, 512)
+                # clip level CRNs
+                clip_level_crn_motion = self.clip_level_motion_cond(torch.unbind(clip_level_appearance_proj, dim=1),
+                                                                    clip_level_motion_proj)
+                clip_level_crn_question = self.clip_level_question_cond(clip_level_crn_motion, question_embedding_proj)
+
+                clip_level_crn_output = torch.cat(
+                    [frame_relation.unsqueeze(1) for frame_relation in clip_level_crn_question],
+                    dim=1)
+                clip_level_crn_output = clip_level_crn_output.view(batch_size, -1, self.module_dim)
+                clip_level_crn_outputs.append(clip_level_crn_output)
+
+            # Encode video level motion
+            _, (video_level_motion, _) = self.sequence_encoder(motion_video_feat)
+            video_level_motion = video_level_motion.transpose(0, 1)
+            video_level_motion_feat_proj = self.video_level_motion_proj(video_level_motion)
+            # video level CRNs
+            video_level_crn_motion = self.video_level_motion_cond(clip_level_crn_outputs, video_level_motion_feat_proj)
+            video_level_crn_question = self.video_level_question_cond(video_level_crn_motion,
+                                                                    question_embedding_proj.unsqueeze(1))
+
+            video_level_crn_output = torch.cat([clip_relation.unsqueeze(1) for clip_relation in video_level_crn_question],
+                                            dim=1)
+            video_level_crn_output = video_level_crn_output.view(batch_size, -1, self.module_dim)
 
         return video_level_crn_output
 
@@ -271,10 +305,11 @@ class OutputUnitCount(nn.Module):
 
 
 class HCRNNetwork(nn.Module):
-    def __init__(self, vision_dim, audio_dim, module_dim, word_dim, k_max_frame_level, k_max_clip_level, spl_resolution, vocab, question_type, level='middle-vcrn', crn_type='concat'):
+    def __init__(self, vision_dim, audio_dim, module_dim, word_dim, k_max_frame_level, k_max_clip_level, spl_resolution, vocab, question_type, useAudio=True, level='middle-vcrn', crn_type='concat'):
         super(HCRNNetwork, self).__init__()
 
         self.question_type = question_type
+        self.useAudio = useAudio
         self.level = level
         self.crn_type = crn_type
         self.feature_aggregation = FeatureAggregation(module_dim)
@@ -286,7 +321,7 @@ class HCRNNetwork(nn.Module):
         self.output_unit = OutputUnitMultiChoices(module_dim=module_dim)
 
        
-        self.visual_input_unit = InputUnitVisual(k_max_frame_level=k_max_frame_level, k_max_clip_level=k_max_clip_level, spl_resolution=spl_resolution, vision_dim=vision_dim, audio_dim=audio_dim, module_dim=module_dim, level=level, crn_type=crn_type)
+        self.visual_input_unit = InputUnitVisual(k_max_frame_level=k_max_frame_level, k_max_clip_level=k_max_clip_level, spl_resolution=spl_resolution, vision_dim=vision_dim, audio_dim=audio_dim, module_dim=module_dim, useAudio=useAudio, level=level, crn_type=crn_type)
         if self.level == 'late':
             self.av_latefusion = AVLateFusion(module_dim=module_dim)
 
@@ -311,9 +346,10 @@ class HCRNNetwork(nn.Module):
         
         question_embedding = self.linguistic_input_unit(question, question_len)
         visual_embedding = self.visual_input_unit(video_appearance_feat, video_motion_feat, vl_audio_feat, question_embedding)
-        audio_embedding = self.audio_input_unit(vl_audio_feat, question_embedding)
-        if self.level == 'late':
-            visual_embedding = self.av_latefusion(audio_embedding, visual_embedding)
+        if self.useAudio:
+            audio_embedding = self.audio_input_unit(vl_audio_feat, question_embedding)
+            if self.level == 'late':
+                visual_embedding = self.av_latefusion(audio_embedding, visual_embedding)
 
         q_visual_embedding = self.feature_aggregation(question_embedding, visual_embedding)
         
