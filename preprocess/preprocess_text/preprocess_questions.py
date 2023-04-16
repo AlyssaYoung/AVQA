@@ -24,6 +24,6 @@ if __name__ == '__main__':
 
     args.annotation_file = os.path.join(args.annotation_path, '{}_qa.json'.format(args.mode))
     args.output_pt = os.path.join(args.out_path, '{}_{}_questions.pt')
-    args.vocab_json = '{}_vocab.json'
+    args.vocab_json = os.path.join(args.out_path, '{}_vocab.json')
     
     avqa.process_questions_mulchoices(args)

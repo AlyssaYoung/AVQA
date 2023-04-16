@@ -85,23 +85,28 @@ Note: You can also develop data preprocessing and feature extraction methods in 
 
 ### Backbone models
 1. PSAC
-
-    Training.
-    ```
-    python xxx.py --mode train
-    ```
-    Testing.
-    ```
-    python xxx.py --mode test
-    ```
 2. HME
 3. LADNet
 4. ACRTransformer
 5. HGA
 6. HCRN
 
+    Training.
+    ```
+    python xxx.py --mode train
+    ```
+    Testing.
+    ```
+    python xxx.py --mode test
+    ```
+
 ### Our proposed HAVF
 1. PSAC+HAVF
+2. HME+HAVF
+3. LADNet+HAVF
+4. ACRTransformer+HAVF
+5. HGA+HAVF
+6. HCRN+HAVF
 
     Training.
     ```
@@ -111,12 +116,6 @@ Note: You can also develop data preprocessing and feature extraction methods in 
     ```
     python xxx.py --mode test
     ```
-2. HME+HAVF
-3. LADNet+HAVF
-4. ACRTransformer+HAVF
-5. HGA+HAVF
-6. HCRN+HAVF
-
 ## Results
 <div align="center">
 <img src=pics/results.png width=95% />
