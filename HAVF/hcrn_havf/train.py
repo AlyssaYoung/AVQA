@@ -14,8 +14,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(me
 logFormatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 rootLogger = logging.getLogger()
 
-# from DataLoader import VideoQADataLoader
-from data.dataloader.DataLoader_addaudio import VideoQADataLoader
+from DataLoader import AVQADataLoader
+# from data.dataloader.DataLoader_addaudio import VideoQADataLoader
 from validate import validate
 
 import model.HCRN as HCRN
@@ -26,80 +26,38 @@ from configs.config import cfg, cfg_from_file
 
 def train(cfg):
     logging.info("Create train_loader and val_loader.........")
-    # train_loader_kwargs = {
-    #     'question_type': cfg.dataset.question_type,
-    #     'question_pt': cfg.dataset.train_question_pt,
-    #     'vocab_json': cfg.dataset.vocab_json,
-    #     'appearance_feat': cfg.dataset.appearance_feat,
-    #     'motion_feat': cfg.dataset.motion_feat,
-    #     'train_num': cfg.train.train_num,
-    #     'batch_size': cfg.train.batch_size,
-    #     'num_workers': cfg.num_workers,
-    #     'shuffle': True,
-    #     'drop_last': True,
-    #     'useAudio': False
-    # }
-    # train_loader = VideoQADataLoader(**train_loader_kwargs)
-    # logging.info("number of train instances: {}".format(len(train_loader.dataset)))
-    # if cfg.val.flag:
-    #     val_loader_kwargs = {
-    #         'question_type': cfg.dataset.question_type,
-    #         'question_pt': cfg.dataset.val_question_pt,
-    #         'vocab_json': cfg.dataset.vocab_json,
-    #         'appearance_feat': cfg.dataset.appearance_feat,
-    #         'motion_feat': cfg.dataset.motion_feat,
-    #         'val_num': cfg.val.val_num,
-    #         'batch_size': cfg.train.batch_size,
-    #         'num_workers': cfg.num_workers,
-    #         'shuffle': False,
-    #         'useAudio': False            
-    #     }
-    #     val_loader = VideoQADataLoader(**val_loader_kwargs)
-    #     logging.info("number of val instances: {}".format(len(val_loader.dataset)))
 
-    # logging.info("Create model.........")
-    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    # model_kwargs = {
-    #     'vision_dim': cfg.train.vision_dim,
-    #     'module_dim': cfg.train.module_dim,
-    #     'word_dim': cfg.train.word_dim,
-    #     'k_max_frame_level': cfg.train.k_max_frame_level,
-    #     'k_max_clip_level': cfg.train.k_max_clip_level,
-    #     'spl_resolution': cfg.train.spl_resolution,
-    #     'vocab': train_loader.vocab,
-    #     'question_type': cfg.dataset.question_type
-    # }
     train_loader_kwargs = {
         'question_type': cfg.dataset.question_type,
-        'question_pt': '/DATA/DATANAS1/yangpinci/VGGSound_QA/hcrn-videoqa/data/datasets/vggsound-qa/vggsound-qa_train_questions_addtype.pt',
-        'vocab_json': '/DATA/DATANAS1/yangpinci/VGGSound_QA/hcrn-videoqa/data/datasets/vggsound-qa/vggsound-qa_vocab.json',
+        'question_pt': cfg.dataset.train_question_pt,
+        'vocab_json': cfg.dataset.vocab_json,
         'appearance_feat': cfg.dataset.appearance_feat,
         'motion_feat': cfg.dataset.motion_feat,
-        'vl_audio_feat': '/DATA/DATANAS1/yangpinci/VGGSound_QA/preprocess_audio/vggsound-qa_vlaudio_PANNs_feat.h5',
-        'cl_audio_feat': '/DATA/DATANAS1/yangpinci/VGGSound_QA/preprocess_audio/vggsound-qa_claudio_PANNs_feat.h5',
+        'vl_audio_feat': cfg.dataset.vl_audio_feat,
+        'cl_audio_feat': cfg.dataset.cl_audio_feat,
         'train_num': cfg.train.train_num,
         'batch_size': cfg.train.batch_size,
         'num_workers': cfg.num_workers,
         'shuffle': True,
         'drop_last': True,
-        'useAudio': False
+        'useAudio': cfg.useAudio
     }
     train_loader = VideoQADataLoader(**train_loader_kwargs)
     logging.info("number of train instances: {}".format(len(train_loader.dataset)))
     if cfg.val.flag:
         val_loader_kwargs = {
             'question_type': cfg.dataset.question_type,
-            'question_pt': '/DATA/DATANAS1/yangpinci/VGGSound_QA/hcrn-videoqa/data/datasets/vggsound-qa/vggsound-qa_val_questions_addtype.pt',
-            'vocab_json': '/DATA/DATANAS1/yangpinci/VGGSound_QA/hcrn-videoqa/data/datasets/vggsound-qa/vggsound-qa_vocab.json',
+            'question_pt': cfg.dataset.val_question_pt,
+            'vocab_json': cfg.dataset.vocab_json,
             'appearance_feat': cfg.dataset.appearance_feat,
             'motion_feat': cfg.dataset.motion_feat,
-            'vl_audio_feat': '/DATA/DATANAS1/yangpinci/VGGSound_QA/preprocess_audio/vggsound-qa_vlaudio_PANNs_feat.h5',
-            'cl_audio_feat': '/DATA/DATANAS1/yangpinci/VGGSound_QA/preprocess_audio/vggsound-qa_claudio_PANNs_feat.h5',
+            'vl_audio_feat': cfg.dataset.vl_audio_feat,
+            'cl_audio_feat': cfg.dataset.vl_audio_feat,
             'val_num': cfg.val.val_num,
             'batch_size': cfg.train.batch_size,
             'num_workers': cfg.num_workers,
             'shuffle': False,
-            'useAudio': False            
+            'useAudio': cfg.useAudio            
         }
         val_loader = VideoQADataLoader(**val_loader_kwargs)
         logging.info("number of val instances: {}".format(len(val_loader.dataset)))
@@ -108,13 +66,15 @@ def train(cfg):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model_kwargs = {
         'vision_dim': cfg.train.vision_dim,
+        'audio_dim' : cfg.train.audio_dim,
         'module_dim': cfg.train.module_dim,
         'word_dim': cfg.train.word_dim,
         'k_max_frame_level': cfg.train.k_max_frame_level,
         'k_max_clip_level': cfg.train.k_max_clip_level,
         'spl_resolution': cfg.train.spl_resolution,
         'vocab': train_loader.vocab,
-        'question_type': cfg.dataset.question_type
+        'question_type': cfg.dataset.question_type,
+        'level': cfg.level
     }
     model_kwargs_tosave = {k: v for k, v in model_kwargs.items() if k != 'vocab'}
     model = HCRN.HCRNNetwork(**model_kwargs).to(device)
@@ -183,16 +143,7 @@ def train(cfg):
                 optimizer.step()
                 preds = torch.argmax(logits.view(batch_size, cfg.dataset.ans_count), dim=1)
                 aggreeings = (preds == answers)
-            elif cfg.dataset.question_type == 'count':
-                answers = answers.unsqueeze(-1)
-                loss = criterion(logits, answers.float())
-                loss.backward()
-                total_loss += loss.detach()
-                avg_loss = total_loss / (i + 1)
-                nn.utils.clip_grad_norm_(model.parameters(), max_norm=12)
-                optimizer.step()
-                preds = (logits + 0.5).long().clamp(min=1, max=10)
-                batch_mse = (preds - answers) ** 2
+
             else:
                 loss = criterion(logits, answers)
                 loss.backward()
@@ -202,35 +153,19 @@ def train(cfg):
                 optimizer.step()
                 aggreeings = batch_accuracy(logits, answers)
 
-            if cfg.dataset.question_type == 'count':
-                batch_avg_mse = batch_mse.sum().item() / answers.size(0)
-                batch_mse_sum += batch_mse.sum().item()
-                count += answers.size(0)
-                avg_mse = batch_mse_sum / count
-                sys.stdout.write(
-                    "\rProgress = {progress}   ce_loss = {ce_loss}   avg_loss = {avg_loss}    train_mse = {train_mse}    avg_mse = {avg_mse}    exp: {exp_name}".format(
-                        progress=colored("{:.3f}".format(progress), "green", attrs=['bold']),
-                        ce_loss=colored("{:.4f}".format(loss.item()), "blue", attrs=['bold']),
-                        avg_loss=colored("{:.4f}".format(avg_loss), "red", attrs=['bold']),
-                        train_mse=colored("{:.4f}".format(batch_avg_mse), "blue",
-                                          attrs=['bold']),
-                        avg_mse=colored("{:.4f}".format(avg_mse), "red", attrs=['bold']),
-                        exp_name=cfg.exp_name))
-                sys.stdout.flush()
-            else:
-                total_acc += aggreeings.sum().item()
-                count += answers.size(0)
-                train_accuracy = total_acc / count
-                sys.stdout.write(
-                    "\rProgress = {progress}   ce_loss = {ce_loss}   avg_loss = {avg_loss}    train_acc = {train_acc}    avg_acc = {avg_acc}    exp: {exp_name}".format(
-                        progress=colored("{:.3f}".format(progress), "green", attrs=['bold']),
-                        ce_loss=colored("{:.4f}".format(loss.item()), "blue", attrs=['bold']),
-                        avg_loss=colored("{:.4f}".format(avg_loss), "red", attrs=['bold']),
-                        train_acc=colored("{:.4f}".format(aggreeings.float().mean().cpu().numpy()), "blue",
-                                          attrs=['bold']),
-                        avg_acc=colored("{:.4f}".format(train_accuracy), "red", attrs=['bold']),
-                        exp_name=cfg.exp_name))
-                sys.stdout.flush()
+            total_acc += aggreeings.sum().item()
+            count += answers.size(0)
+            train_accuracy = total_acc / count
+            sys.stdout.write(
+                "\rProgress = {progress}   ce_loss = {ce_loss}   avg_loss = {avg_loss}    train_acc = {train_acc}    avg_acc = {avg_acc}    exp: {exp_name}".format(
+                    progress=colored("{:.3f}".format(progress), "green", attrs=['bold']),
+                    ce_loss=colored("{:.4f}".format(loss.item()), "blue", attrs=['bold']),
+                    avg_loss=colored("{:.4f}".format(avg_loss), "red", attrs=['bold']),
+                    train_acc=colored("{:.4f}".format(aggreeings.float().mean().cpu().numpy()), "blue",
+                                        attrs=['bold']),
+                    avg_acc=colored("{:.4f}".format(train_accuracy), "red", attrs=['bold']),
+                    exp_name=cfg.exp_name))
+            sys.stdout.flush()
         sys.stdout.write("\n")
         
         if cfg.dataset.question_type == 'count':
@@ -250,24 +185,6 @@ def train(cfg):
                 os.makedirs(output_dir)
             else:
                 assert os.path.isdir(output_dir)
-            # valid_acc = validate(cfg, model, val_loader, device, write_preds=False)
-            # if (valid_acc > best_val and cfg.dataset.question_type != 'count') or (valid_acc < best_val and cfg.dataset.question_type == 'count'):
-            #     best_val = valid_acc
-            #     # Save best model
-            #     ckpt_dir = os.path.join(cfg.dataset.save_dir, 'ckpt')
-            #     if not os.path.exists(ckpt_dir):
-            #         os.makedirs(ckpt_dir)
-            #     else:
-            #         assert os.path.isdir(ckpt_dir)
-            #     save_checkpoint(epoch, model, optimizer, model_kwargs_tosave, os.path.join(ckpt_dir, 'model.pt'))
-            #     sys.stdout.write('\n >>>>>> save to %s <<<<<< \n' % (ckpt_dir))
-            #     sys.stdout.flush()
-
-            # logging.info('~~~~~~ Valid Accuracy: %.4f ~~~~~~~' % valid_acc)
-            # sys.stdout.write('~~~~~~ Valid Accuracy: {valid_acc} ~~~~~~~\n'.format(
-            #     valid_acc=colored("{:.4f}".format(valid_acc), "red", attrs=['bold'])))
-            
-            # sys.stdout.flush()
             valid_acc, which_acc, comefrom_acc, happening_acc, where_acc, why_acc, beforenext_acc, when_acc, usedfor_acc = validate(cfg, model, val_loader, device, write_preds=False)
             if (valid_acc > best_val and cfg.dataset.question_type != 'count') or (valid_acc < best_val and cfg.dataset.question_type == 'count'):
                 best_val = valid_acc

@@ -40,7 +40,7 @@ def load_vocab(path):
     return vocab
 
 
-class VideoQADataset(Dataset):
+class AVQADataset(Dataset):
 
     def __init__(self, answers, ans_candidates, ans_candidates_len, questions, questions_len, video_ids, q_ids,
                  app_feature_h5, app_feat_id_to_index, motion_feature_h5, motion_feat_id_to_index):
@@ -103,7 +103,7 @@ class VideoQADataset(Dataset):
         return len(self.all_questions)
 
 
-class VideoQADataLoader(DataLoader):
+class AVQADataLoader(DataLoader):
 
     def __init__(self, **kwargs):
         vocab_json_path = str(kwargs.pop('vocab_json'))
