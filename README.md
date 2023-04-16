@@ -13,10 +13,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 ### Repo directories
 - ./data: data dictionary;
 - ./preprocess: code and scripts for data preprocessing and feature extraction;
-- ./HAVF: our proposed HAVF model to reproduce the results;
-- ./runs: the default output dictionary used to store our trained model and result files;
-- ./scripts: all training and evaluating scripts;
-- ./requirements: requirement.txt files for each backbone models.
+- ./HAVF: our proposed HAVF model to reproduce the results.
 
 ## Usage
 ### Before we start
