@@ -13,7 +13,7 @@ from utils.utils import todevice
 
 import model.HCRN as HCRN
 
-from config import cfg, cfg_from_file
+from configs.config import cfg, cfg_from_file
 
 QUESTION_CATEGORY = {0:'Which',1:'Come From',2:'Happening',3:'Where',4:'Why', 5:'Before Next', 6:'When', 7:'Used For'}
 

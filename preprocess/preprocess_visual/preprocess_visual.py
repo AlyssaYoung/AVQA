@@ -260,10 +260,9 @@ if __name__ == '__main__':
 
     print("Start extraction ......")
 
+    args.annotation_file = os.path.join(args.annotation_path, '{}_qa.json')
     video_paths = avqa.load_video_paths(args)
     random.shuffle(video_paths)
-
-    args.annotation_file = os.path.join(args.annotation_path, '{}_qa.json')
 
     generate_h5(model, video_paths, args.num_clips,
                 args.outfile.format(args.dataset, args.feature_type, args.model))

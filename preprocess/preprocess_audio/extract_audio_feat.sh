@@ -1,6 +1,5 @@
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
-# wget -O $CHECKPOINT_PATH https://zenodo.org/record/3987831/files/Cnn14_mAP%3D0.431.pth?download=1
-CUDA_VISIBLE_DEVICES=3 python preprocess_audio.py \
+CUDA_VISIBLE_DEVICES=1 python preprocess_audio.py \
     --feature_type="vlaudio" \
     --checkpoint_path=$CHECKPOINT_PATH \
     --audio_path="../../data/audio" \

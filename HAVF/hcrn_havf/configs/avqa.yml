@@ -1,4 +1,4 @@
-gpu_id: 6
+gpu_id: 1
 multi_gpus: False
 num_workers: 4
 seed: 666
@@ -31,6 +31,6 @@ test:
 dataset:
   name: 'avqa'
   question_type: 'none'
-  data_dir: 'data/feats'
+  data_dir: '../../data/feats'
   save_dir: 'out/hcrn_havf_exp_middle_vcrn'
   ans_count: 4

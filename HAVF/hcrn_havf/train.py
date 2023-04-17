@@ -15,7 +15,6 @@ logFormatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 rootLogger = logging.getLogger()
 
 from DataLoader import AVQADataLoader
-# from data.dataloader.DataLoader_addaudio import VideoQADataLoader
 from validate import validate
 
 import model.HCRN as HCRN

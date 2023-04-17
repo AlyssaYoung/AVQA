@@ -22,5 +22,8 @@ def load_video_paths(args):
         video_dict = json.load(f)
 
     for video_name in video_names:
-        video_paths.append(((os.path.join(args.video_path + '{}.mp4'.format(video_name))), video_dict[video_name]))
+        video_path = os.path.join(args.video_path + '{}.mp4'.format(video_name))
+        
+        if os.path.exists(video_path):
+            video_paths.append(((video_path), video_dict[video_name]))
     return video_paths

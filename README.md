@@ -74,7 +74,7 @@ We collect 57,015 videos from daily audio-visual activities and 57,335 specially
 Finally, the feature dimensions of extracted features are as follows:
 |     | Dimension  |
 |  ----  | ----  |
-| Audio features  | (#num_videos, 8, 2048) |
+| Audio features  | (#num_videos, 2048) |
 | Appearance features  | (#num_videos, 8, 16, 2048) |
 | Motion features  | (#num_videos, 8, 2048) |
 

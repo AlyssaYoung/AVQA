@@ -7,7 +7,7 @@ from torch.nn.modules.module import Module
 
 class CRN(Module):
     def __init__(self, module_dim, num_objects, max_subset_size, gating=False, spl_resolution=1, fuse_type='concat'):
-        super(CRN_mul, self).__init__()
+        super(CRN, self).__init__()
         self.module_dim = module_dim
         self.gating = gating
         self.fuse_type = fuse_type
