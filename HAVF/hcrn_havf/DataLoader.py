@@ -44,11 +44,12 @@ class AVQADataset(Dataset):
 
     def __init__(self, answers, ans_candidates, ans_candidates_len, questions, questions_len, video_ids, q_ids,
                  app_feature_h5, app_feat_id_to_index, motion_feature_h5, motion_feat_id_to_index, vlaudio_feature_h5, 
-                 vlaudio_feat_id_to_index, useAudio=True, ablation='none'):
+                 vlaudio_feat_id_to_index, question_category, useAudio=True, ablation='none'):
         # convert data to tensor
         self.useAudio = useAudio
         self.ablation = ablation
         self.all_answers = answers
+        self.question_category = question_category
         self.all_questions = torch.LongTensor(np.asarray(questions))
         self.all_questions_len = torch.LongTensor(np.asarray(questions_len))
         self.all_video_ids = torch.LongTensor(np.asarray(video_ids))
@@ -82,6 +83,7 @@ class AVQADataset(Dataset):
             ans_candidates = self.all_ans_candidates[index]
             ans_candidates_len = self.all_ans_candidates_len[index]
         question = self.all_questions[index]
+        question_category = self.question_category[index] if self.question_category is not None else None
         question_len = self.all_questions_len[index]
         video_idx = self.all_video_ids[index].item()
         question_idx = self.all_q_ids[index]
@@ -143,7 +145,7 @@ class AVQADataset(Dataset):
                 motion_feat, vl_audio_feat, question, question_len)
         else:
             return (
-                video_idx, question_idx, answer, ans_candidates, ans_candidates_len, appearance_feat, motion_feat, question,
+                video_idx, question_idx, question_category, answer, ans_candidates, ans_candidates_len, appearance_feat, motion_feat, question,
                 question_len)
 
     def __len__(self):
@@ -163,6 +165,7 @@ class AVQADataLoader(DataLoader):
         with open(question_pt_path, 'rb') as f:
             obj = pickle.load(f)
             questions = obj['questions']
+            question_category = obj['question_category']
             questions_len = obj['questions_len']
             video_ids = obj['video_ids']
             q_ids = obj['question_id']
@@ -178,6 +181,7 @@ class AVQADataLoader(DataLoader):
             trained_num = kwargs.pop('train_num')
             if trained_num > 0:
                 questions = questions[:trained_num]
+                question_category = question_category[:trained_num]
                 questions_len = questions_len[:trained_num]
                 video_ids = video_ids[:trained_num]
                 q_ids = q_ids[:trained_num]
@@ -188,6 +192,7 @@ class AVQADataLoader(DataLoader):
             val_num = kwargs.pop('val_num')
             if val_num > 0:
                 questions = questions[:val_num]
+                question_category = question_category[:val_num]
                 questions_len = questions_len[:val_num]
                 video_ids = video_ids[:val_num]
                 q_ids = q_ids[:val_num]
@@ -198,6 +203,7 @@ class AVQADataLoader(DataLoader):
             test_num = kwargs.pop('test_num')
             if test_num > 0:
                 questions = questions[:test_num]
+                question_category = question_category[:test_num]
                 questions_len = questions_len[:test_num]
                 video_ids = video_ids[:test_num]
                 q_ids = q_ids[:test_num]
@@ -230,7 +236,7 @@ class AVQADataLoader(DataLoader):
                                       video_ids, q_ids,
                                       self.app_feature_h5, app_feat_id_to_index, self.motion_feature_h5,
                                       motion_feat_id_to_index, self.vlaudio_feature_h5, vlaudio_feat_id_to_index, 
-                                      self.useAudio, self.ablation)
+                                      question_category, self.useAudio, self.ablation)
 
         self.vocab = vocab
         self.batch_size = kwargs['batch_size']

@@ -81,12 +81,14 @@ Finally, the feature dimensions of extracted features are as follows:
 Note: You can also develop data preprocessing and feature extraction methods in your own original and innonative ways. Here we just provide a possible way to utilize the audio and visual data :)
 
 ### Our proposed HAVF
-1. PSAC+HAVF: comming soon!
-2. HME+HAVF: comming soon!
-3. LADNet+HAVF: comming soon!
-4. ACRTransformer+HAVF: comming soon!
-5. HGA+HAVF: comming soon!
-6. HCRN+HAVF: Please refer to [HAVF/hcrn_havf/README.md](https://github.com/AlyssaYoung/AVQA/tree/main/HAVF/hcrn_havf).
+- [x] HCRN+HAVF: Please refer to [HAVF/hcrn_havf/README.md](https://github.com/AlyssaYoung/AVQA/tree/main/HAVF/hcrn_havf).
+- [ ] PSAC+HAVF
+- [ ] HME+HAVF
+- [ ] LADNet+HAVF
+- [ ] ACRTransformer+HAVF
+- [ ] HGA+HAVF
+
+
 ## Results
 <div align="center">
 <img src=pics/results.png width=95% />
@@ -97,7 +99,7 @@ Note: You can also develop data preprocessing and feature extraction methods in 
 - Pip
 
 ## Notice
-To improve the code readability, we have recently rebuilded our code. It costs a lot of time. You may encounter some bugs or find performance difference compared with the results reported in the paper. Please feel free to contact us if you have any questions or suggestions. Both [issues](https://github.com/AlyssaYoung/AVQA/issues) and emails(pinci_yang@outlook.com) are available.
+To improve the code readability, we have recently rebuilded our code. You may encounter some bugs or find performance difference compared with the results reported in the paper. Please feel free to contact us if you have any questions or suggestions. Both [issues](https://github.com/AlyssaYoung/AVQA/issues) and emails(pinci_yang@outlook.com) are available.
 
 ## Citation
 If you find our paper or code useful, please cite our paper using the following bibtex:
@@ -118,6 +120,6 @@ If you find our paper or code useful, please cite our paper using the following 
     - [PSAC](https://github.com/lixiangpengcs/PSAC) @lixiangpengcs
     - [HME](https://github.com/fanchenyou/HME-VideoQA) @fanchenyou
     - [LADNet](https://github.com/lixiangpengcs/LAD-Net-for-VideoQA) @lixiangpengcs
-    - [ACRTransformer](https://github.com/op-multimodal/ACRTransformer/)
+    - [ACRTransformer](https://github.com/op-multimodal/ACRTransformer/) @op-multimodal
     - [HGA](https://github.com/Jumpin2/HGA) @Jumpin2
     - [HCRN](https://github.com/thaolmk54/hcrn-videoqa) @thaolmk54
